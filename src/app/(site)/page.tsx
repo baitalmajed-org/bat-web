@@ -51,7 +51,7 @@ export default async function HomePage() {
       key: "featured_products",
       order: products.sort_order,
       node: (
-        <section key="featured_products" className="container-page py-16" aria-labelledby="products-heading">
+        <section key="featured_products" className="container-page py-16 sm:py-20" aria-labelledby="products-heading">
           <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div className="max-w-2xl">
               {products.eyebrow ? <p className="eyebrow mb-3">{products.eyebrow}</p> : null}
@@ -79,7 +79,7 @@ export default async function HomePage() {
       key: "services",
       order: servicesSection.sort_order,
       node: (
-        <section key="services" className="bg-steel-50 py-16" aria-labelledby="services-heading">
+        <section key="services" className="border-y border-steel-200/70 bg-steel-50 py-16 sm:py-20" aria-labelledby="services-heading">
           <div className="container-page">
             <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
               <div className="max-w-2xl">

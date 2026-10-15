@@ -20,11 +20,11 @@ export default function Footer({ settings, categories, services }: Props) {
     <footer className="bg-steel-900 text-steel-200">
       <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <div className="relative mb-4 inline-block h-16 w-32 bg-white p-2">
+          <div className="relative mb-4 inline-block h-14 w-44">
             {settings.logo_public_id ? (
-              <CloudImage publicId={settings.logo_public_id} alt={settings.company_name} preset="logo" sizes="128px" className="object-contain" />
+              <CloudImage publicId={settings.logo_public_id} alt={settings.company_name} preset="logo" sizes="176px" className="object-contain object-left" />
             ) : (
-              <Image src="/brand/logo-on-white.png" alt={settings.company_name} fill sizes="128px" className="object-contain p-2" />
+              <Image src="/brand/logo-dark.png" alt={settings.company_name} fill sizes="176px" className="object-contain object-left" priority={false} />
             )}
           </div>
           <p className="max-w-sm text-sm leading-relaxed text-steel-300">

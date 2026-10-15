@@ -17,7 +17,7 @@ export function CtaLink({ href, label, settings, variant }: { href: string | nul
 
 export default function Hero({ section, settings }: { section: HomepageSection; settings: SiteSettings }) {
   return (
-    <section className="relative isolate overflow-hidden bg-steel-900 text-white">
+    <section className="relative isolate overflow-hidden border-b border-steel-800 bg-steel-900 text-white">
       {section.image_public_id ? (
         <>
           <CloudImage publicId={section.image_public_id} alt={section.image_alt ?? ""} preset="hero" sizes="100vw" priority />
