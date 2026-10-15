@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body { @apply bg-white text-steel-900 antialiased; }
+  h1, h2, h3, h4 { @apply font-bold tracking-tight text-steel-900; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-brand-500; outline-style: solid; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+}
+
+@layer components {
+  .container-page { @apply mx-auto w-full max-w-page px-4 sm:px-6 lg:px-8; }
+  .btn { @apply inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60; }
+  .btn-primary { @apply btn bg-brand text-white hover:bg-brand-deep; }
+  .btn-dark { @apply btn bg-steel-900 text-white hover:bg-steel-800; }
+  .btn-light { @apply btn bg-white text-steel-900 hover:bg-steel-100; }
+  .btn-outline { @apply btn border border-steel-300 bg-white text-steel-900 hover:border-brand hover:text-brand; }
+  .btn-danger { @apply btn bg-red-700 text-white hover:bg-red-800; }
+  .eyebrow { @apply flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand before:h-0.5 before:w-8 before:bg-brand; }
+  .field { @apply block w-full border border-steel-300 bg-white px-3 py-2.5 text-sm text-steel-900 placeholder:text-steel-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand; }
+  .field-error { @apply border-red-600; }
+  .label { @apply mb-1.5 block text-sm font-medium text-steel-800; }
+  .card { @apply border border-steel-200 bg-white; }
+  .steel-pattern {
+    background-color: #25282c;
+    background-image:
+      repeating-linear-gradient(135deg, rgba(121,26,48,0.28) 0 18px, transparent 18px 44px),
+      linear-gradient(120deg, #1e2023 0%, #2d3033 55%, #25282c 100%);
+  }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
