@@ -8,16 +8,10 @@ import Field, { Check } from "./Field";
 import FormMessage from "./FormMessage";
 import SubmitButton from "./SubmitButton";
 
-const LABELS: Record<HomepageSection["key"], string> = {
-  hero: "Hero banner", featured_products: "Featured products carousel", services: "Services overview",
-  about: "About preview", trust: "Company strengths", contact_cta: "Contact call-to-action",
-};
 const HAS_IMAGE = new Set(["hero", "about", "contact_cta"]);
 const HAS_ITEMS = new Set(["hero", "trust"]);
 const HAS_CTA = new Set(["hero", "featured_products", "services", "about", "contact_cta"]);
 const HAS_SECONDARY_CTA = new Set(["hero", "contact_cta"]);
-
-export function sectionLabel(key: HomepageSection["key"]) { return LABELS[key]; }
 
 export default function HomeSectionForm({ section }: { section: HomepageSection }) {
   const [state, action] = useActionState(saveHomeSection.bind(null, section.key), initialFormState);
