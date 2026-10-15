@@ -14,6 +14,13 @@ export async function submitInquiry(_prev: FormState, formData: FormData): Promi
   const raw = Object.fromEntries(
     Array.from(formData.entries()).filter(([, v]) => typeof v === "string") as [string, string][],
   );
+
+  // Honeypot: bots fill the hidden field. Pretend success, store nothing.
+  const honeypot = typeof raw.website === "string" ? raw.website.trim() : "";
+  if (honeypot) {
+    return { ok: true, message: "Thank you. Your inquiry has been received." };
+  }
+
   const parsed = inquirySchema.safeParse(raw);
   const values = { ...raw };
   delete values.privacy;
@@ -23,8 +30,10 @@ export async function submitInquiry(_prev: FormState, formData: FormData): Promi
   }
   const input = parsed.data;
 
-  // Honeypot: bots fill the hidden field. Pretend success, store nothing.
-  if (input.website) return { ok: true, message: "Thank you. Your inquiry has been received." };
+  // Secondary check if parsed data retained a non-empty website
+  if (input.website) {
+    return { ok: true, message: "Thank you. Your inquiry has been received." };
+  }
 
   const h = await headers();
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";

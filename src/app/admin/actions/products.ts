@@ -66,14 +66,35 @@ export async function setProductPublished(formData: FormData): Promise<void> {
 export async function deleteProduct(formData: FormData): Promise<void> {
   await assertAdmin();
   const id = str(formData, "id");
-  const supabase = await createClient();
-  const { data: images } = await supabase.from("product_images").select("public_id").eq("product_id", id);
-  const { error } = await supabase.from("products").delete().eq("id", id);
-  if (error) {
-    console.error("[admin] product delete failed", error.message);
+  if (!id) {
     redirect("/admin/products?error=delete");
   }
-  for (const img of images ?? []) await releaseAsset(supabase, img.public_id);
+
+  const supabase = await createClient();
+  const { data: images, error: imagesError } = await supabase
+    .from("product_images")
+    .select("public_id")
+    .eq("product_id", id);
+
+  if (imagesError) {
+    console.error("[admin] product images fetch failed", imagesError.message);
+    redirect("/admin/products?error=delete");
+  }
+
+  const { error: deleteError } = await supabase.from("products").delete().eq("id", id);
+  if (deleteError) {
+    console.error("[admin] product delete failed", deleteError.message);
+    redirect("/admin/products?error=delete");
+  }
+
+  for (const img of images ?? []) {
+    try {
+      await releaseAsset(supabase, img.public_id);
+    } catch (err) {
+      console.error("[admin] image cleanup failed for", img.public_id, err);
+    }
+  }
+
   revalidatePublic();
   redirect("/admin/products?deleted=1");
 }

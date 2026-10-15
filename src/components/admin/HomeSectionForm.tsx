@@ -23,7 +23,7 @@ export default function HomeSectionForm({ section }: { section: HomepageSection 
       <FormMessage state={state} />
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id={id("eyebrow")} label="Small label above heading" error={e.eyebrow}><input id={id("eyebrow")} name="eyebrow" defaultValue={section.eyebrow ?? ""} className={cls("eyebrow")} /></Field>
-        <Field id={id("order")} label="Display order" error={e.sort_order} hint="Lower numbers appear higher on the page (hero is always first)."><input id={id("order")} name="sort_order" type="number" min={0} defaultValue={section.sort_order} className={cls("sort_order")} /></Field>
+        <Field id={id("order")} label="Display order" error={e.sort_order} hint="Lower numbers appear higher on the page."><input id={id("order")} name="sort_order" type="number" min={0} defaultValue={section.sort_order} className={cls("sort_order")} /></Field>
       </div>
       {section.key !== "trust" ? (
         <>

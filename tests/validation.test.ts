@@ -14,7 +14,11 @@ describe("inquirySchema", () => {
   it("requires privacy acknowledgment", () => expect(inquirySchema.safeParse({ ...valid, privacy: "" }).success).toBe(false));
   it("rejects unknown type", () => expect(inquirySchema.safeParse({ ...valid, type: "hack" }).success).toBe(false));
   it("keeps honeypot value so the action can detect bots", () => {
-    expect(inquirySchema.safeParse({ ...valid, website: "spam" }).success).toBe(false);
+    const r = inquirySchema.safeParse({ ...valid, website: "spam" });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.website).toBe("spam");
+    }
   });
   it("treats a malformed hidden product id as no product instead of failing", () => {
     const r = inquirySchema.safeParse({ ...valid, productId: "not-a-uuid" });

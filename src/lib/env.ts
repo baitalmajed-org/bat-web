@@ -22,10 +22,39 @@ export function cloudinaryConfig(): { cloudName: string; apiKey: string; apiSecr
   return { cloudName, apiKey, apiSecret, folder: process.env.CLOUDINARY_FOLDER || "bam" };
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isPlaceholderKey(key: string): boolean {
+  const trimmed = key.trim().toLowerCase();
+  return (
+    trimmed === "" ||
+    trimmed.startsWith("your-") ||
+    trimmed.startsWith("your_") ||
+    trimmed.startsWith("<your-") ||
+    trimmed === "placeholder" ||
+    trimmed === "changeme"
+  );
+}
+
+function isValidEmail(email: string | undefined): boolean {
+  if (!email) return false;
+  const trimmed = email.trim();
+  return trimmed.length > 0 && trimmed.length <= 254 && EMAIL_RE.test(trimmed);
+}
+
 export function brevoConfig(): { apiKey: string; senderEmail: string; senderName: string; adminEmail: string } | null {
-  const apiKey = process.env.BREVO_API_KEY;
-  const senderEmail = process.env.BREVO_SENDER_EMAIL;
-  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
-  if (!apiKey || !senderEmail || !adminEmail) return null;
-  return { apiKey, senderEmail, senderName: process.env.BREVO_SENDER_NAME || "Bait Al Majed Metal Works", adminEmail };
+  const rawKey = process.env.BREVO_API_KEY;
+  const rawSender = process.env.BREVO_SENDER_EMAIL;
+  const rawAdmin = process.env.ADMIN_NOTIFICATION_EMAIL;
+
+  if (!rawKey || isPlaceholderKey(rawKey)) return null;
+  if (!rawSender || !isValidEmail(rawSender)) return null;
+  if (!rawAdmin || !isValidEmail(rawAdmin)) return null;
+
+  return {
+    apiKey: rawKey.trim(),
+    senderEmail: rawSender.trim(),
+    senderName: process.env.BREVO_SENDER_NAME?.trim() || "Bait Al Majed Metal Works",
+    adminEmail: rawAdmin.trim(),
+  };
 }

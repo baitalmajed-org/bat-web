@@ -49,7 +49,7 @@ export const inquirySchema = z.object({
   subject: z.string().trim().min(3, "Please add a subject").max(200),
   message: z.string().trim().min(10, "Please tell us a little more (min 10 characters)").max(4000),
   privacy: z.literal("on", { error: "Please acknowledge the privacy notice" }),
-  website: z.string().max(0).optional().default(""), // honeypot, must stay empty
+  website: z.string().optional().default(""), // honeypot, allows parsing bot values so server action detects them
 });
 export type InquiryInput = z.infer<typeof inquirySchema>;
 
