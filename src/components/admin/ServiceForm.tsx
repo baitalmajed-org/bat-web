@@ -1,9 +1,8 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { saveService } from "@/app/admin/actions/services";
-import { initialFormState } from "@/lib/validation/state";
 import { specsToText } from "@/lib/utils/text";
 import { SERVICE_ICON_KEYS } from "@/components/ui/ServiceIcon";
 import { useToast } from "@/components/admin/ToastProvider";
@@ -11,6 +10,8 @@ import type { Service } from "@/types/db";
 import Field, { Check } from "./Field";
 import FormMessage from "./FormMessage";
 import SubmitButton from "./SubmitButton";
+
+import { ImageUploadField, useDirectImageUpload } from "./ImageUploadField";
 
 interface ServiceFormProps {
   service: Service | null;
@@ -27,10 +28,8 @@ export default function ServiceForm({
   onCancel,
   onChange,
 }: ServiceFormProps) {
-  const [state, action] = useActionState(
-    saveService.bind(null, service?.id ?? null),
-    initialFormState
-  );
+  const { state, handleSubmit, isSubmitting, isUploading, progress, clientError, setClientError } =
+    useDirectImageUpload("service", saveService.bind(null, service?.id ?? null));
   const { toast } = useToast();
 
   useEffect(() => {
@@ -48,7 +47,7 @@ export default function ServiceForm({
   const cls = (k: string) => `field ${e[k] ? "field-error" : ""}`;
 
   return (
-    <form action={action} onChange={onChange} className="space-y-6">
+    <form action={handleSubmit} onChange={onChange} className="space-y-6">
       {isModal ? <input type="hidden" name="modal" value="1" /> : null}
       <FormMessage state={state} />
 
@@ -167,18 +166,17 @@ export default function ServiceForm({
           4. Media & SEO
         </h3>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field
+          <ImageUploadField
             id="image"
+            name="image"
+            purpose="service"
             label={service?.image_public_id ? "Replace service photo" : "Service photo (optional)"}
-          >
-            <input
-              id="image"
-              name="image"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="field"
-            />
-          </Field>
+            error={clientError}
+            isUploading={isUploading}
+            progress={progress}
+            onError={setClientError}
+            hint="Upload service photo up to 5 MB."
+          />
           <Field id="image_alt" label="Image alt text" error={e.image_alt}>
             <input
               id="image_alt"
@@ -224,7 +222,12 @@ export default function ServiceForm({
 
       {/* Form Action Buttons */}
       <div className="flex items-center gap-3 pt-3 border-t border-steel-200">
-        <SubmitButton pendingLabel="Saving service...">Save service</SubmitButton>
+        <SubmitButton
+          disabled={isSubmitting}
+          pendingLabel={isUploading ? `Uploading image (${progress ?? 0}%)...` : "Saving service..."}
+        >
+          Save service
+        </SubmitButton>
         {isModal ? (
           <button type="button" onClick={onCancel} className="btn-outline">
             Cancel

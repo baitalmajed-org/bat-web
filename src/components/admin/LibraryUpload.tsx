@@ -1,11 +1,11 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useEffect } from "react";
 import { uploadLibraryImage } from "@/app/admin/actions/content";
-import { initialFormState } from "@/lib/validation/state";
 import { useToast } from "@/components/admin/ToastProvider";
 import FormMessage from "./FormMessage";
 import SubmitButton from "./SubmitButton";
+import { ImageUploadField, useDirectImageUpload } from "./ImageUploadField";
 
 interface LibraryUploadProps {
   isModal?: boolean;
@@ -20,7 +20,8 @@ export default function LibraryUpload({
   onCancel,
   onChange,
 }: LibraryUploadProps) {
-  const [state, action] = useActionState(uploadLibraryImage, initialFormState);
+  const { state, handleSubmit, isSubmitting, isUploading, progress, clientError, setClientError } =
+    useDirectImageUpload("library", uploadLibraryImage);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,24 +36,22 @@ export default function LibraryUpload({
   }, [state, toast, onSuccess]);
 
   return (
-    <form action={action} onChange={onChange} className="space-y-4">
+    <form action={handleSubmit} onChange={onChange} className="space-y-4">
       {isModal ? <input type="hidden" name="modal" value="1" /> : null}
       <FormMessage state={state} />
 
-      <div>
-        <label htmlFor="lib-image" className="label">
-          Image file (JPEG, PNG or WebP)
-        </label>
-        <input
-          id="lib-image"
-          name="image"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          required
-          className="field"
-        />
-        <p className="mt-1 text-xs text-steel-500">Maximum size 8 MB. Files are stored and served via Cloudinary.</p>
-      </div>
+      <ImageUploadField
+        id="lib-image"
+        name="image"
+        purpose="library"
+        label="Image file"
+        required
+        error={clientError}
+        isUploading={isUploading}
+        progress={progress}
+        onError={setClientError}
+        hint="Upload media library assets up to 8 MB. Files are stored on Cloudinary."
+      />
 
       <div>
         <label htmlFor="lib-alt" className="label">
@@ -68,7 +67,12 @@ export default function LibraryUpload({
       </div>
 
       <div className="flex items-center gap-3 pt-2">
-        <SubmitButton pendingLabel="Uploading...">Upload image</SubmitButton>
+        <SubmitButton
+          disabled={isSubmitting}
+          pendingLabel={isUploading ? `Uploading image (${progress ?? 0}%)...` : "Saving to library..."}
+        >
+          Upload image
+        </SubmitButton>
         {isModal ? (
           <button type="button" onClick={onCancel} className="btn-outline">
             Cancel

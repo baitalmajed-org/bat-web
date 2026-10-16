@@ -5,9 +5,10 @@ import { assertAdmin } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { serviceSchema, fieldErrors } from "@/lib/validation/schemas";
 import { parseLines, parseSpecs, slugify } from "@/lib/utils/text";
-import { bool, dbMessage, done, fail, file, str } from "@/lib/admin-form";
+import { bool, dbMessage, done, fail, str } from "@/lib/admin-form";
 import { revalidatePublic } from "@/lib/data/cache";
 import { releaseAsset, saveImage } from "@/lib/cloudinary/media";
+import { extractImageInput } from "@/lib/cloudinary/action-helper";
 import type { FormState } from "@/lib/validation/state";
 
 export async function saveService(id: string | null, _prev: FormState, fd: FormData): Promise<FormState> {
@@ -44,10 +45,10 @@ export async function saveService(id: string | null, _prev: FormState, fd: FormD
     serviceId = data.id;
   }
 
-  const image = file(fd, "image");
-  if (image && serviceId) {
+  const { directAsset, file: image } = extractImageInput(fd, "image");
+  if ((directAsset || image) && serviceId) {
     const result = await saveImage({
-      supabase, file: image, purpose: "service", alt: payload.image_alt, oldPublicId,
+      supabase, file: image, directAsset, purpose: "service", alt: payload.image_alt, oldPublicId,
       applyUpdate: async (a) => {
         const { error } = await supabase.from("services").update({ image_public_id: a.publicId }).eq("id", serviceId!);
         return { error: error ? dbMessage(error) : null };

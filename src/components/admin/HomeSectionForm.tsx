@@ -1,8 +1,7 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useEffect } from "react";
 import { saveHomeSection } from "@/app/admin/actions/content";
-import { initialFormState } from "@/lib/validation/state";
 import { useToast } from "@/components/admin/ToastProvider";
 import type { HomepageSection } from "@/types/db";
 import Field, { Check } from "./Field";
@@ -22,6 +21,8 @@ interface HomeSectionFormProps {
   onChange?: () => void;
 }
 
+import { ImageUploadField, useDirectImageUpload } from "./ImageUploadField";
+
 export default function HomeSectionForm({
   section,
   isModal = false,
@@ -29,10 +30,9 @@ export default function HomeSectionForm({
   onCancel,
   onChange,
 }: HomeSectionFormProps) {
-  const [state, action] = useActionState(
-    saveHomeSection.bind(null, section.key),
-    initialFormState
-  );
+  const purpose = section.key === "hero" ? "homepage_hero" : "homepage";
+  const { state, handleSubmit, isSubmitting, isUploading, progress, clientError, setClientError } =
+    useDirectImageUpload(purpose, saveHomeSection.bind(null, section.key));
   const { toast } = useToast();
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function HomeSectionForm({
   const cls = (k: string) => `field ${e[k] ? "field-error" : ""}`;
 
   return (
-    <form action={action} onChange={onChange} className="space-y-4">
+    <form action={handleSubmit} onChange={onChange} className="space-y-4">
       <FormMessage state={state} />
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -179,18 +179,17 @@ export default function HomeSectionForm({
 
       {HAS_IMAGE.has(section.key) ? (
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field
+          <ImageUploadField
             id={id("image")}
+            name="image"
+            purpose={purpose}
             label={section.image_public_id ? "Replace background image" : "Background image"}
-          >
-            <input
-              id={id("image")}
-              name="image"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="field"
-            />
-          </Field>
+            error={clientError}
+            isUploading={isUploading}
+            progress={progress}
+            onError={setClientError}
+            hint={section.key === "hero" ? "Homepage hero banner image up to 8 MB." : "Homepage section image up to 5 MB."}
+          />
           <Field id={id("alt")} label="Image alt text" error={e.image_alt}>
             <input
               id={id("alt")}
@@ -210,7 +209,12 @@ export default function HomeSectionForm({
       />
 
       <div className="flex items-center gap-3 pt-3 border-t border-steel-200">
-        <SubmitButton pendingLabel="Saving section...">Save section</SubmitButton>
+        <SubmitButton
+          disabled={isSubmitting}
+          pendingLabel={isUploading ? `Uploading image (${progress ?? 0}%)...` : "Saving section..."}
+        >
+          Save section
+        </SubmitButton>
         {isModal ? (
           <button type="button" onClick={onCancel} className="btn-outline">
             Cancel

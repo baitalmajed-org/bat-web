@@ -2,6 +2,8 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { destroyAsset, uploadImage, type UploadedAsset } from "./client";
 import { validateImageFile } from "@/lib/validation/schemas";
+import { type ImagePurpose } from "./limits";
+import { verifyDirectAsset, type DirectUploadedAssetPayload } from "./signature";
 
 export type ReplaceResult =
   | { ok: true; asset: UploadedAsset; cleanupWarning?: string }
@@ -54,32 +56,49 @@ export async function releaseAsset(supabase: SupabaseClient, publicId: string): 
 }
 
 /**
- * Safe replace workflow:
- * validate -> upload new -> track -> apply DB update -> (on failure: undo new upload)
+ * Safe replace workflow for both server-mediated files and direct browser uploads:
+ * validate -> (upload if file / verify if direct) -> track -> apply DB update -> (on failure: undo new upload)
  * -> release old asset only if nothing references it.
  * The old image is never deleted before the new reference is saved.
  */
 export async function saveImage(opts: {
   supabase: SupabaseClient;
-  file: File;
-  purpose: string;
+  file?: File | null;
+  directAsset?: DirectUploadedAssetPayload | null;
+  purpose: ImagePurpose | string;
   alt: string | null;
   oldPublicId?: string | null;
   applyUpdate: (asset: UploadedAsset) => Promise<{ error: string | null }>;
 }): Promise<ReplaceResult> {
-  const { supabase, file, purpose, alt, oldPublicId, applyUpdate } = opts;
-  const invalid = validateImageFile(file);
-  if (invalid) return { ok: false, error: invalid };
+  const { supabase, file, directAsset, purpose, alt, oldPublicId, applyUpdate } = opts;
+  const imagePurpose = purpose as ImagePurpose;
 
   let asset: UploadedAsset;
-  try {
-    asset = await uploadImage(Buffer.from(await file.arrayBuffer()), purpose);
-  } catch (e) {
-    if (e instanceof Error && e.message === "CLOUDINARY_NOT_CONFIGURED") {
-      return { ok: false, error: "Cloudinary is not configured. Add the CLOUDINARY_* variables to enable uploads." };
+
+  if (directAsset) {
+    // Direct browser-to-Cloudinary upload: validate returned asset information & cryptographic signature
+    try {
+      asset = verifyDirectAsset(directAsset, imagePurpose);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Invalid asset uploaded.";
+      return { ok: false, error: msg };
     }
-    console.error("[cloudinary] upload failed", e instanceof Error ? e.message : e);
-    return { ok: false, error: "Image upload failed. Nothing was changed. Please try again." };
+  } else if (file) {
+    // Server-mediated upload fallback (and unit test path)
+    const invalid = validateImageFile(file, imagePurpose);
+    if (invalid) return { ok: false, error: invalid };
+
+    try {
+      asset = await uploadImage(Buffer.from(await file.arrayBuffer()), purpose);
+    } catch (e) {
+      if (e instanceof Error && e.message === "CLOUDINARY_NOT_CONFIGURED") {
+        return { ok: false, error: "Cloudinary is not configured. Add the CLOUDINARY_* variables to enable uploads." };
+      }
+      console.error("[cloudinary] upload failed", e instanceof Error ? e.message : e);
+      return { ok: false, error: "Image upload failed. Nothing was changed. Please try again." };
+    }
+  } else {
+    return { ok: false, error: "Choose an image to upload." };
   }
 
   const alreadyExisted = oldPublicId === asset.publicId;

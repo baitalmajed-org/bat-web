@@ -149,13 +149,22 @@ export const noteSchema = z.object({ note: z.string().trim().min(1, "Write a not
 
 export const inquiryStatusSchema = z.enum(["new", "in_progress", "replied", "closed"]);
 
-export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
-export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+import { IMAGE_LIMITS, ALLOWED_IMAGE_TYPES, type ImagePurpose, getImageLimit } from "@/lib/cloudinary/limits";
+export { IMAGE_LIMITS, ALLOWED_IMAGE_TYPES, type ImagePurpose, getImageLimit };
 
-export function validateImageFile(file: { size: number; type: string }): string | null {
+export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+export function validateImageFile(file: { size: number; type: string }, purpose?: ImagePurpose): string | null {
   if (!(ALLOWED_IMAGE_TYPES as readonly string[]).includes(file.type)) return "Only JPEG, PNG or WebP images are allowed.";
   if (file.size === 0) return "The selected file is empty.";
-  if (file.size > MAX_IMAGE_BYTES) return "Image is larger than 8 MB. Please choose a smaller file.";
+  if (purpose) {
+    const limit = getImageLimit(purpose);
+    if (file.size > limit.maxBytes) {
+      return `${limit.label} is larger than ${limit.maxMB} MB. Please choose a smaller file.`;
+    }
+  } else if (file.size > MAX_IMAGE_BYTES) {
+    return "Image is larger than 8 MB. Please choose a smaller file.";
+  }
   return null;
 }
 

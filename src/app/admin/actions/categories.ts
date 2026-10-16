@@ -5,9 +5,10 @@ import { assertAdmin } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { categorySchema, fieldErrors } from "@/lib/validation/schemas";
 import { slugify } from "@/lib/utils/text";
-import { bool, dbMessage, done, fail, file, str } from "@/lib/admin-form";
+import { bool, dbMessage, done, fail, str } from "@/lib/admin-form";
 import { revalidatePublic } from "@/lib/data/cache";
 import { releaseAsset, saveImage } from "@/lib/cloudinary/media";
+import { extractImageInput } from "@/lib/cloudinary/action-helper";
 import type { FormState } from "@/lib/validation/state";
 
 export async function saveCategory(id: string | null, _prev: FormState, fd: FormData): Promise<FormState> {
@@ -38,10 +39,10 @@ export async function saveCategory(id: string | null, _prev: FormState, fd: Form
     categoryId = data.id;
   }
 
-  const image = file(fd, "image");
-  if (image && categoryId) {
+  const { directAsset, file: image } = extractImageInput(fd, "image");
+  if ((directAsset || image) && categoryId) {
     const result = await saveImage({
-      supabase, file: image, purpose: "category", alt: parsed.data.image_alt, oldPublicId,
+      supabase, file: image, directAsset, purpose: "category", alt: parsed.data.image_alt, oldPublicId,
       applyUpdate: async (a) => {
         const { error } = await supabase.from("categories").update({ image_public_id: a.publicId }).eq("id", categoryId!);
         return { error: error ? dbMessage(error) : null };

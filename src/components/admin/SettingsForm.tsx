@@ -1,17 +1,17 @@
 "use client";
 
-import { useActionState } from "react";
-import { saveSettings } from "@/app/admin/actions/content";
-import { initialFormState } from "@/lib/validation/state";
-import { useToast } from "@/components/admin/ToastProvider";
 import { useEffect } from "react";
+import { saveSettings } from "@/app/admin/actions/content";
+import { useToast } from "@/components/admin/ToastProvider";
 import type { SiteSettings } from "@/types/db";
 import Field from "./Field";
 import FormMessage from "./FormMessage";
 import SubmitButton from "./SubmitButton";
+import { ImageUploadField, useDirectImageUpload } from "./ImageUploadField";
 
 export default function SettingsForm({ s }: { s: SiteSettings }) {
-  const [state, action] = useActionState(saveSettings, initialFormState);
+  const { state, handleSubmit, isSubmitting, isUploading, progress, clientError, setClientError } =
+    useDirectImageUpload("logo", saveSettings, "logo");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -31,12 +31,23 @@ export default function SettingsForm({ s }: { s: SiteSettings }) {
       <input id={k} name={k} type={extra?.type ?? "text"} defaultValue={(s[k] as string | null) ?? ""} className={cls(k)} />
     </Field>
   );
+
   return (
-    <form action={action} className="space-y-8">
+    <form action={handleSubmit} className="space-y-8">
       <FormMessage state={state} />
       <fieldset className="space-y-4"><legend className="mb-2 text-lg font-bold">Company</legend>
         <div className="grid gap-4 sm:grid-cols-2">{t("company_name", "Company name")}{t("tagline", "Tagline")}</div>
-        <Field id="logo" label="Replace logo (optional)" hint="Leave empty to keep the current logo. The bundled official logo is used until you upload one."><input id="logo" name="logo" type="file" accept="image/jpeg,image/png,image/webp" className="field" /></Field>
+        <ImageUploadField
+          id="logo"
+          name="logo"
+          purpose="logo"
+          label="Replace logo (optional)"
+          error={clientError}
+          isUploading={isUploading}
+          progress={progress}
+          onError={setClientError}
+          hint="Leave empty to keep the current logo. Transparent PNG or WebP recommended, max 2 MB."
+        />
       </fieldset>
       <fieldset className="space-y-4"><legend className="mb-2 text-lg font-bold">Contact</legend>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -62,7 +73,12 @@ export default function SettingsForm({ s }: { s: SiteSettings }) {
         {t("seo_default_description", "Default meta description", { hint: "Up to 170 characters." })}
         <Field id="footer_description" label="Footer description" error={e.footer_description}><textarea id="footer_description" name="footer_description" rows={3} defaultValue={s.footer_description ?? ""} className={cls("footer_description")} /></Field>
       </fieldset>
-      <SubmitButton>Save settings</SubmitButton>
+      <SubmitButton
+        disabled={isSubmitting}
+        pendingLabel={isUploading ? `Uploading logo (${progress ?? 0}%)...` : "Saving settings..."}
+      >
+        Save settings
+      </SubmitButton>
     </form>
   );
 }

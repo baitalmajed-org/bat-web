@@ -1,8 +1,7 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useEffect } from "react";
 import { saveCategory } from "@/app/admin/actions/categories";
-import { initialFormState } from "@/lib/validation/state";
 import { useToast } from "@/components/admin/ToastProvider";
 import type { Category } from "@/types/db";
 import Field, { Check } from "./Field";
@@ -17,6 +16,8 @@ interface CategoryFormProps {
   onChange?: () => void;
 }
 
+import { ImageUploadField, useDirectImageUpload } from "./ImageUploadField";
+
 export default function CategoryForm({
   category,
   isModal = false,
@@ -24,10 +25,8 @@ export default function CategoryForm({
   onCancel,
   onChange,
 }: CategoryFormProps) {
-  const [state, action] = useActionState(
-    saveCategory.bind(null, category?.id ?? null),
-    initialFormState
-  );
+  const { state, handleSubmit, isSubmitting, isUploading, progress, clientError, setClientError } =
+    useDirectImageUpload("category", saveCategory.bind(null, category?.id ?? null));
   const { toast } = useToast();
 
   useEffect(() => {
@@ -45,7 +44,7 @@ export default function CategoryForm({
   const cls = (k: string) => `field ${e[k] ? "field-error" : ""}`;
 
   return (
-    <form action={action} onChange={onChange} className="space-y-4">
+    <form action={handleSubmit} onChange={onChange} className="space-y-4">
       {isModal ? <input type="hidden" name="modal" value="1" /> : null}
       <FormMessage state={state} />
 
@@ -101,18 +100,17 @@ export default function CategoryForm({
         />
       </Field>
 
-      <Field
+      <ImageUploadField
         id="c-image"
+        name="image"
+        purpose="category"
         label={category?.image_public_id ? "Replace image (optional)" : "Category image (optional)"}
-      >
-        <input
-          id="c-image"
-          name="image"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="field"
-        />
-      </Field>
+        error={clientError}
+        isUploading={isUploading}
+        progress={progress}
+        onError={setClientError}
+        hint="Upload category showcase image up to 5 MB."
+      />
 
       <Check
         name="is_active"
@@ -121,7 +119,10 @@ export default function CategoryForm({
       />
 
       <div className="flex items-center gap-3 pt-3 border-t border-steel-200">
-        <SubmitButton pendingLabel={category ? "Saving..." : "Creating..."}>
+        <SubmitButton
+          disabled={isSubmitting}
+          pendingLabel={isUploading ? `Uploading image (${progress ?? 0}%)...` : (category ? "Saving..." : "Creating...")}
+        >
           {category ? "Save category" : "Create category"}
         </SubmitButton>
         {isModal ? (

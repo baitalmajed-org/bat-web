@@ -5,9 +5,10 @@ import { assertAdmin } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { aboutSchema, fieldErrors, homepageSectionSchema, settingsSchema } from "@/lib/validation/schemas";
 import { parseLines } from "@/lib/utils/text";
-import { bool, dbMessage, done, fail, file, str } from "@/lib/admin-form";
+import { bool, dbMessage, done, fail, str } from "@/lib/admin-form";
 import { revalidatePublic } from "@/lib/data/cache";
 import { releaseAsset, saveImage } from "@/lib/cloudinary/media";
+import { extractImageInput } from "@/lib/cloudinary/action-helper";
 import type { FormState } from "@/lib/validation/state";
 import type { HomepageItem } from "@/types/db";
 
@@ -42,10 +43,11 @@ export async function saveHomeSection(key: SectionKey, _prev: FormState, fd: For
   const { error } = await supabase.from("homepage_sections").update(payload).eq("key", key);
   if (error) return fail(dbMessage(error));
 
-  const image = file(fd, "image");
-  if (image) {
+  const purpose = key === "hero" ? "homepage_hero" : "homepage";
+  const { directAsset, file: image } = extractImageInput(fd, "image");
+  if (directAsset || image) {
     const result = await saveImage({
-      supabase, file: image, purpose: "homepage", alt: parsed.data.image_alt, oldPublicId: current?.image_public_id ?? null,
+      supabase, file: image, directAsset, purpose, alt: parsed.data.image_alt, oldPublicId: current?.image_public_id ?? null,
       applyUpdate: async (a) => {
         const { error: e } = await supabase.from("homepage_sections").update({ image_public_id: a.publicId }).eq("key", key);
         return { error: e ? dbMessage(e) : null };
@@ -120,10 +122,10 @@ export async function saveAbout(_prev: FormState, fd: FormData): Promise<FormSta
   }, { onConflict: "slug" });
   if (error) return fail(dbMessage(error));
 
-  const image = file(fd, "image");
-  if (image) {
+  const { directAsset, file: image } = extractImageInput(fd, "image");
+  if (directAsset || image) {
     const result = await saveImage({
-      supabase, file: image, purpose: "page", alt: null, oldPublicId: current?.hero_image_public_id ?? null,
+      supabase, file: image, directAsset, purpose: "about", alt: null, oldPublicId: current?.hero_image_public_id ?? null,
       applyUpdate: async (a) => {
         const { error: e } = await supabase.from("pages").update({ hero_image_public_id: a.publicId }).eq("slug", "about");
         return { error: e ? dbMessage(e) : null };
@@ -148,10 +150,10 @@ export async function saveSettings(_prev: FormState, fd: FormData): Promise<Form
   const { error } = await supabase.from("site_settings").upsert({ id: 1, ...parsed.data }, { onConflict: "id" });
   if (error) return fail(dbMessage(error));
 
-  const logo = file(fd, "logo");
-  if (logo) {
+  const { directAsset, file: logo } = extractImageInput(fd, "logo");
+  if (directAsset || logo) {
     const result = await saveImage({
-      supabase, file: logo, purpose: "logo", alt: parsed.data.company_name, oldPublicId: current?.logo_public_id ?? null,
+      supabase, file: logo, directAsset, purpose: "logo", alt: parsed.data.company_name, oldPublicId: current?.logo_public_id ?? null,
       applyUpdate: async (a) => {
         const { error: e } = await supabase.from("site_settings").update({ logo_public_id: a.publicId }).eq("id", 1);
         return { error: e ? dbMessage(e) : null };
@@ -177,10 +179,17 @@ export async function resetLogo(): Promise<void> {
 
 export async function uploadLibraryImage(_prev: FormState, fd: FormData): Promise<FormState> {
   await assertAdmin();
-  const f = file(fd, "image");
-  if (!f) return fail("Choose an image to upload.");
+  const { directAsset, file: f } = extractImageInput(fd, "image");
+  if (!directAsset && !f) return fail("Choose an image to upload.");
   const supabase = await createClient();
-  const result = await saveImage({ supabase, file: f, purpose: "library", alt: str(fd, "alt_text").trim() || null, applyUpdate: async () => ({ error: null }) });
+  const result = await saveImage({
+    supabase,
+    file: f,
+    directAsset,
+    purpose: "library",
+    alt: str(fd, "alt_text").trim() || null,
+    applyUpdate: async () => ({ error: null }),
+  });
   if (!result.ok) return fail(result.error);
   if (fd.get("modal") === "1") {
     return done("Image uploaded.");

@@ -5,7 +5,7 @@ import { assertAdmin } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { productSchema, fieldErrors } from "@/lib/validation/schemas";
 import { parseLines, parseSpecs, slugify } from "@/lib/utils/text";
-import { bool, dbMessage, done, fail, file, str } from "@/lib/admin-form";
+import { bool, dbMessage, done, fail, str } from "@/lib/admin-form";
 import { revalidatePublic } from "@/lib/data/cache";
 import { releaseAsset, saveImage } from "@/lib/cloudinary/media";
 import type { FormState } from "@/lib/validation/state";
@@ -112,17 +112,19 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   redirect("/admin/products?deleted=1");
 }
 
+import { extractImageInput } from "@/lib/cloudinary/action-helper";
+
 export async function addProductImage(productId: string, _prev: FormState, fd: FormData): Promise<FormState> {
   await assertAdmin();
-  const f = file(fd, "image");
-  if (!f) return fail("Choose an image to upload.");
+  const { directAsset, file: f } = extractImageInput(fd, "image");
+  if (!directAsset && !f) return fail("Choose an image to upload.");
   const alt = str(fd, "alt_text").trim() || null;
   const supabase = await createClient();
   const { data: last } = await supabase.from("product_images").select("sort_order").eq("product_id", productId).order("sort_order", { ascending: false }).limit(1);
   const next = (last?.[0]?.sort_order ?? -1) + 1;
 
   const result = await saveImage({
-    supabase, file: f, purpose: "product", alt,
+    supabase, file: f, directAsset, purpose: "product", alt,
     applyUpdate: async (a) => {
       const { error } = await supabase.from("product_images").insert({ product_id: productId, public_id: a.publicId, secure_url: a.secureUrl, alt_text: alt, sort_order: next });
       return { error: error ? dbMessage(error) : null };
@@ -135,14 +137,14 @@ export async function addProductImage(productId: string, _prev: FormState, fd: F
 
 export async function replaceProductImage(imageId: string, _prev: FormState, fd: FormData): Promise<FormState> {
   await assertAdmin();
-  const f = file(fd, "image");
-  if (!f) return fail("Choose a replacement image.");
+  const { directAsset, file: f } = extractImageInput(fd, "image");
+  if (!directAsset && !f) return fail("Choose a replacement image.");
   const supabase = await createClient();
   const { data: current } = await supabase.from("product_images").select("public_id,alt_text").eq("id", imageId).maybeSingle();
   if (!current) return fail("Image not found.");
 
   const result = await saveImage({
-    supabase, file: f, purpose: "product", alt: current.alt_text, oldPublicId: current.public_id,
+    supabase, file: f, directAsset, purpose: "product", alt: current.alt_text, oldPublicId: current.public_id,
     applyUpdate: async (a) => {
       const { error } = await supabase.from("product_images").update({ public_id: a.publicId, secure_url: a.secureUrl }).eq("id", imageId);
       return { error: error ? dbMessage(error) : null };
