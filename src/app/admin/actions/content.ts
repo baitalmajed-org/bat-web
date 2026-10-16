@@ -182,6 +182,9 @@ export async function uploadLibraryImage(_prev: FormState, fd: FormData): Promis
   const supabase = await createClient();
   const result = await saveImage({ supabase, file: f, purpose: "library", alt: str(fd, "alt_text").trim() || null, applyUpdate: async () => ({ error: null }) });
   if (!result.ok) return fail(result.error);
+  if (fd.get("modal") === "1") {
+    return done("Image uploaded.");
+  }
   redirect("/admin/media?uploaded=1");
 }
 

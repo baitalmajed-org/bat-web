@@ -3,6 +3,8 @@
 import { useActionState } from "react";
 import { saveSettings } from "@/app/admin/actions/content";
 import { initialFormState } from "@/lib/validation/state";
+import { useToast } from "@/components/admin/ToastProvider";
+import { useEffect } from "react";
 import type { SiteSettings } from "@/types/db";
 import Field from "./Field";
 import FormMessage from "./FormMessage";
@@ -10,6 +12,18 @@ import SubmitButton from "./SubmitButton";
 
 export default function SettingsForm({ s }: { s: SiteSettings }) {
   const [state, action] = useActionState(saveSettings, initialFormState);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (state.message) {
+      if (state.ok) {
+        toast.success(state.message);
+      } else {
+        toast.error(state.message);
+      }
+    }
+  }, [state, toast]);
+
   const e = state.errors ?? {};
   const cls = (k: string) => `field ${e[k] ? "field-error" : ""}`;
   const t = (k: keyof SiteSettings, label: string, extra?: { hint?: string; type?: string }) => (

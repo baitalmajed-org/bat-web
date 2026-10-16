@@ -10,6 +10,8 @@ import { revalidatePublic } from "@/lib/data/cache";
 import { releaseAsset, saveImage } from "@/lib/cloudinary/media";
 import type { FormState } from "@/lib/validation/state";
 
+import { getAdminProduct } from "@/lib/data/admin";
+
 function parseProduct(fd: FormData) {
   const name = str(fd, "name");
   const parsed = productSchema.safeParse({
@@ -25,6 +27,11 @@ function parseProduct(fd: FormData) {
     seo_description: str(fd, "seo_description"),
   });
   return parsed;
+}
+
+export async function getProductForEdit(id: string) {
+  await assertAdmin();
+  return getAdminProduct(id);
 }
 
 export async function saveProduct(id: string | null, _prev: FormState, fd: FormData): Promise<FormState> {
@@ -43,6 +50,9 @@ export async function saveProduct(id: string | null, _prev: FormState, fd: FormD
     const { data, error } = await supabase.from("products").insert(payload).select("id").single();
     if (error) return fail(dbMessage(error), error.code === "23505" ? { slug: "Slug already in use" } : undefined);
     revalidatePublic();
+    if (fd.get("modal") === "1") {
+      return done("Product created.");
+    }
     redirect(`/admin/products/${data.id}/edit?created=1`);
   }
 

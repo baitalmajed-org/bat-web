@@ -8,7 +8,8 @@ export function slugify(input: string): string {
     .replace(/&/g, " and ")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
+    .slice(0, 80)
+    .replace(/-+$/, "");
 }
 
 /** "Label: value" per line -> specs. Lines without a colon are ignored. */

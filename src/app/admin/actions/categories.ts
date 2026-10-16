@@ -50,7 +50,12 @@ export async function saveCategory(id: string | null, _prev: FormState, fd: Form
     if (!result.ok) { revalidatePublic(); return fail(`Category saved, but the image failed: ${result.error}`); }
   }
   revalidatePublic();
-  if (!id) redirect("/admin/categories?created=1");
+  if (!id) {
+    if (fd.get("modal") === "1") {
+      return done("Category created.");
+    }
+    redirect("/admin/categories?created=1");
+  }
   return done("Category saved.");
 }
 

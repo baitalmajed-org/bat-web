@@ -1,8 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
+import { useEffect } from "react";
 import { saveAbout } from "@/app/admin/actions/content";
 import { initialFormState } from "@/lib/validation/state";
+import { useToast } from "@/components/admin/ToastProvider";
 import type { PageRow } from "@/types/db";
 import Field from "./Field";
 import FormMessage from "./FormMessage";
@@ -10,6 +12,18 @@ import SubmitButton from "./SubmitButton";
 
 export default function AboutForm({ page }: { page: PageRow }) {
   const [state, action] = useActionState(saveAbout, initialFormState);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (state.message) {
+      if (state.ok) {
+        toast.success(state.message);
+      } else {
+        toast.error(state.message);
+      }
+    }
+  }, [state, toast]);
+
   const e = state.errors ?? {};
   const c = page.content;
   const ta = (name: string, label: string, value: string, rows = 3, hint?: string) => (

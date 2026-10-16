@@ -60,7 +60,12 @@ export async function saveService(id: string | null, _prev: FormState, fd: FormD
     }
   }
   revalidatePublic();
-  if (!id) redirect(`/admin/services/${serviceId}/edit?created=1`);
+  if (!id) {
+    if (fd.get("modal") === "1") {
+      return done("Service created.");
+    }
+    redirect(`/admin/services/${serviceId}/edit?created=1`);
+  }
   return done("Service saved.");
 }
 
