@@ -19,7 +19,7 @@ export default function ProductGallery({ images, name }: { images: Img[]; name: 
           {images.map((img, i) => (
             <li key={img.id}>
               <button type="button" onClick={() => setIndex(i)} aria-label={`Show image ${i + 1}`} aria-current={i === index} className={`relative block aspect-square w-full overflow-hidden border-2 ${i === index ? "border-brand" : "border-steel-200"}`}>
-                <CloudImage publicId={img.public_id} alt="" preset="thumb" sizes="120px" />
+                <CloudImage publicId={img.public_id} alt={img.alt_text || `${name} view ${i + 1}`} preset="thumb" sizes="120px" />
               </button>
             </li>
           ))}

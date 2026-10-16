@@ -16,7 +16,7 @@ export default async function AdminPages() {
   return (
     <>
       <PageHeader title="About page" description="Fields left empty are hidden on the website. Do not enter unverified facts." />
-      {page.hero_image_public_id ? <div className="mb-4 w-56"><Thumb publicId={page.hero_image_public_id} alt="" /></div> : null}
+      {page.hero_image_public_id ? <div className="mb-4 w-56"><Thumb publicId={page.hero_image_public_id} alt={page.title || "About page hero"} /></div> : null}
       <div className="border border-steel-200 bg-white p-5"><AboutForm page={page} /></div>
     </>
   );

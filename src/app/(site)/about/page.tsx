@@ -56,7 +56,7 @@ export default async function AboutPage() {
         </div>
         <div className="space-y-6">
           <div className="relative aspect-[4/3] overflow-hidden bg-steel-100">
-            {page?.hero_image_public_id ? <CloudImage publicId={page.hero_image_public_id} alt="" preset="about" sizes="(min-width:1024px) 50vw, 100vw" priority /> : <Placeholder />}
+            {page?.hero_image_public_id ? <CloudImage publicId={page.hero_image_public_id} alt={page?.title ? `${page.title} workshop` : "About Bait Al Majed Metal Works workshop"} preset="about" sizes="(min-width:1024px) 50vw, 100vw" priority /> : <Placeholder label={page?.title ?? "About Bait Al Majed Metal Works"} />}
           </div>
           {facts.length > 0 ? (
             <dl className="grid grid-cols-2 gap-px border border-steel-200 bg-steel-200">

@@ -35,7 +35,7 @@ export default async function ServicesPage() {
             {services.map((s) => (
               <li key={s.id} className="card flex flex-col">
                 {s.image_public_id ? (
-                  <div className="relative aspect-[16/9] overflow-hidden bg-steel-100"><CloudImage publicId={s.image_public_id} alt={s.image_alt ?? ""} preset="card" sizes="(min-width:1024px) 33vw, (min-width:768px) 50vw, 100vw" /></div>
+                  <div className="relative aspect-[16/9] overflow-hidden bg-steel-100"><CloudImage publicId={s.image_public_id} alt={s.image_alt || s.title} preset="card" sizes="(min-width:1024px) 33vw, (min-width:768px) 50vw, 100vw" /></div>
                 ) : null}
                 <div className="flex flex-1 flex-col gap-3 p-6">
                   <span className="text-brand"><ServiceIcon name={s.icon} /></span>

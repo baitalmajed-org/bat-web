@@ -20,7 +20,7 @@ export default function Hero({ section, settings }: { section: HomepageSection; 
     <section className="relative isolate overflow-hidden border-b border-steel-800 bg-steel-900 text-white">
       {section.image_public_id ? (
         <>
-          <CloudImage publicId={section.image_public_id} alt={section.image_alt ?? ""} preset="hero" sizes="100vw" priority />
+          <CloudImage publicId={section.image_public_id} alt={section.image_alt || section.heading || "Bait Al Majed Metal Works industrial steel fabrication"} preset="hero" sizes="100vw" priority />
           <div className="absolute inset-0 bg-gradient-to-r from-steel-900 via-steel-900/85 to-steel-900/30" aria-hidden />
         </>
       ) : (

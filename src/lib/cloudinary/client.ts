@@ -47,6 +47,10 @@ export async function uploadImage(buffer: Buffer, purpose: string): Promise<Uplo
     stream.end(buffer);
   });
 
+  if (!result.public_id || !result.secure_url) {
+    throw new Error("Cloudinary upload returned incomplete asset information");
+  }
+
   return {
     publicId: result.public_id,
     secureUrl: result.secure_url,

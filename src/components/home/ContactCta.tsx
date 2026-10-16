@@ -7,7 +7,7 @@ export default function ContactCta({ section, settings }: { section: HomepageSec
     <section className="relative isolate overflow-hidden border-t-2 border-brand border-b border-steel-800 bg-[#3D0C18] text-white">
       {section.image_public_id ? (
         <>
-          <CloudImage publicId={section.image_public_id} alt={section.image_alt ?? ""} preset="hero" sizes="100vw" />
+          <CloudImage publicId={section.image_public_id} alt={section.image_alt || section.heading || "Contact Bait Al Majed Metal Works"} preset="hero" sizes="100vw" />
           <div className="absolute inset-0 bg-gradient-to-r from-brand-950/90 via-[#3D0C18]/85 to-steel-900/80" aria-hidden />
         </>
       ) : (

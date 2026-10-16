@@ -9,7 +9,7 @@ export default function AboutPreview({ section }: { section: HomepageSection }) 
     <section className="border-y border-steel-200/60 bg-white">
       <div className="container-page grid items-center gap-10 py-16 lg:grid-cols-2">
         <div className="relative aspect-[4/3] overflow-hidden border border-steel-200 bg-steel-100 shadow-sm">
-          {section.image_public_id ? <CloudImage publicId={section.image_public_id} alt={section.image_alt ?? ""} preset="about" sizes="(min-width:1024px) 50vw, 100vw" /> : <Placeholder />}
+          {section.image_public_id ? <CloudImage publicId={section.image_public_id} alt={section.image_alt || section.heading || "About Bait Al Majed Metal Works workshop"} preset="about" sizes="(min-width:1024px) 50vw, 100vw" /> : <Placeholder label={section.heading ?? "About Bait Al Majed Metal Works"} />}
         </div>
         <div>
           {section.eyebrow ? <p className="eyebrow mb-3">{section.eyebrow}</p> : null}

@@ -106,9 +106,10 @@ export async function saveImage(opts: {
 
 async function compensate(supabase: SupabaseClient, publicId: string) {
   try {
-    await destroyAsset(publicId);
+    await releaseAsset(supabase, publicId);
   } catch (e) {
-    console.error("[cloudinary] compensating delete failed", publicId, e instanceof Error ? e.message : e);
+    console.error("[cloudinary] compensating release failed", publicId, e instanceof Error ? e.message : e);
   }
   await supabase.from("media_assets").delete().eq("public_id", publicId);
 }
+
