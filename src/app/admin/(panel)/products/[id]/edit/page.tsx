@@ -10,9 +10,9 @@ import { AddImageForm, ReplaceImageForm, Thumb } from "@/components/admin/Produc
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import StatusBadge from "@/components/admin/StatusBadge";
 
-export default async function EditProduct({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ created?: string }> }) {
+export default async function EditProduct({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
-  const [{ id }, sp] = await Promise.all([params, searchParams]);
+  const { id } = await params;
   const [product, categories] = await Promise.all([getAdminProduct(id), listAllCategories()]);
   if (!product) notFound();
 
@@ -32,7 +32,6 @@ export default async function EditProduct({ params, searchParams }: { params: Pr
           </>
         }
       />
-      {sp.created ? <p role="status" className="mb-4 border border-green-300 bg-green-50 p-3 text-sm text-green-800">Product created. You can now add images.</p> : null}
 
       <div className="space-y-8">
         <section className="border border-steel-200 bg-white p-5" aria-labelledby="details"><h2 id="details" className="mb-4 text-lg">Details</h2><ProductForm product={product} categories={categories} /></section>

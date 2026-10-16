@@ -14,18 +14,10 @@ export default async function AdminCategories({ searchParams }: { searchParams: 
   const sp = await searchParams;
   const categories = await listAllCategories();
   const editing = sp.edit ? categories.find((c) => c.id === sp.edit) ?? null : null;
-  const errorText: Record<string, string> = {
-    in_use: `That category still has ${sp.n ?? "some"} product(s). Choose another category to move them to, then delete.`,
-    move: "The products could not be moved, so nothing was deleted.",
-    delete: "The category could not be deleted.",
-  };
-
   return (
     <>
       <PageHeader title="Categories" description="Organise products for the catalog filters." />
-      {sp.created ? <p role="status" className="mb-4 border border-green-300 bg-green-50 p-3 text-sm text-green-800">Category created.</p> : null}
-      {sp.deleted ? <p role="status" className="mb-4 border border-green-300 bg-green-50 p-3 text-sm text-green-800">Category deleted.</p> : null}
-      {sp.error ? <p role="alert" className="mb-4 border border-red-300 bg-red-50 p-3 text-sm text-red-800">{errorText[sp.error] ?? "Something went wrong."}</p> : null}
+
 
       <div className="grid gap-8 lg:grid-cols-5">
         <div className="overflow-x-auto border border-steel-200 bg-white lg:col-span-3">

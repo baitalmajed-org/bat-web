@@ -7,14 +7,12 @@ import PageHeader from "@/components/admin/PageHeader";
 import StatusBadge from "@/components/admin/StatusBadge";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 
-export default async function AdminServices({ searchParams }: { searchParams: Promise<{ deleted?: string; error?: string }> }) {
+export default async function AdminServices() {
   await requireAdmin();
-  const [services, sp] = await Promise.all([listAdminServices(), searchParams]);
+  const services = await listAdminServices();
   return (
     <>
       <PageHeader title="Services" description={`${services.length} total`} actions={<Link href="/admin/services/new" className="btn-primary"><Plus className="h-4 w-4" aria-hidden /> New service</Link>} />
-      {sp.deleted ? <p role="status" className="mb-4 border border-green-300 bg-green-50 p-3 text-sm text-green-800">Service deleted.</p> : null}
-      {sp.error ? <p role="alert" className="mb-4 border border-red-300 bg-red-50 p-3 text-sm text-red-800">The service could not be deleted.</p> : null}
       <div className="overflow-x-auto border border-steel-200 bg-white">
         <table className="w-full min-w-[36rem] text-sm">
           <thead className="bg-steel-100 text-left text-xs uppercase tracking-wider text-steel-600"><tr><th className="p-3">Service</th><th className="p-3">Homepage</th><th className="p-3">Status</th><th className="p-3 text-right">Actions</th></tr></thead>

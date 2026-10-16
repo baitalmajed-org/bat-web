@@ -17,18 +17,10 @@ export default async function AdminMedia({ searchParams }: { searchParams: SP })
   const page = Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1);
   const { rows, total } = await listMedia(page);
   const totalPages = Math.max(1, Math.ceil(total / 24));
-  const errors: Record<string, string> = {
-    in_use: "That image is still used by website content and was not deleted. Replace it where it is used first.",
-    check: "Could not verify whether the image is in use, so it was kept.",
-    cloudinary: "Cloudinary could not delete the file. It is marked for retry: press Delete again later.",
-  };
   return (
     <>
       <PageHeader title="Media" description={`${total} tracked image${total === 1 ? "" : "s"}. Images are assigned inside products, services, homepage sections and settings.`} />
       {!isCloudinaryConfigured() ? <p role="alert" className="mb-4 border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">Cloudinary is not configured. Uploads are disabled.</p> : null}
-      {sp.uploaded ? <p role="status" className="mb-4 border border-green-300 bg-green-50 p-3 text-sm text-green-800">Image uploaded.</p> : null}
-      {sp.deleted ? <p role="status" className="mb-4 border border-green-300 bg-green-50 p-3 text-sm text-green-800">Image deleted.</p> : null}
-      {sp.error ? <p role="alert" className="mb-4 border border-red-300 bg-red-50 p-3 text-sm text-red-800">{errors[sp.error] ?? "Something went wrong."}</p> : null}
 
       <section className="mb-8 border border-steel-200 bg-white p-5" aria-labelledby="up"><h2 id="up" className="mb-3 text-lg">Upload to library</h2><LibraryUpload /></section>
 

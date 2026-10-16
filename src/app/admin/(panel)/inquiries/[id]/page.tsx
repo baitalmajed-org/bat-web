@@ -12,7 +12,6 @@ import StatusBadge from "@/components/admin/StatusBadge";
 import NoteForm from "@/components/admin/NoteForm";
 import SubmitButton from "@/components/admin/SubmitButton";
 
-type SP = Promise<{ saved?: string; retry?: string; error?: string }>;
 
 function toLocalInput(iso: string | null): string {
   if (!iso) return "";
@@ -21,21 +20,18 @@ function toLocalInput(iso: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export default async function InquiryDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: SP }) {
+export default async function InquiryDetail({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
-  const [{ id }, sp] = await Promise.all([params, searchParams]);
+  const { id } = await params;
   const found = await getInquiry(id);
   if (!found) notFound();
   const { inquiry: i, notes } = found;
   const needsRetry = i.admin_email_status !== "sent" || i.customer_email_status !== "sent";
 
-  const retryText: Record<string, string> = { ok: "Emails sent.", failed: "Sending failed again. Check the Brevo setup and try later.", nothing: "Both emails were already delivered." };
-
   return (
     <>
       <PageHeader title={i.reference} description={`${INQUIRY_TYPE_LABELS[i.inquiry_type]} · received ${formatDateTime(i.created_at)}`} actions={<Link href="/admin/inquiries" className="btn-outline">Back to inquiries</Link>} />
-      {sp.saved ? <p role="status" className="mb-4 border border-green-300 bg-green-50 p-3 text-sm text-green-800">Changes saved.</p> : null}
-      {sp.retry ? <p role="status" className="mb-4 border border-steel-300 bg-white p-3 text-sm">{retryText[sp.retry] ?? ""}</p> : null}
+
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

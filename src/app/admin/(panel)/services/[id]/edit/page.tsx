@@ -9,9 +9,9 @@ import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import StatusBadge from "@/components/admin/StatusBadge";
 import { Thumb } from "@/components/admin/ProductImages";
 
-export default async function EditService({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ created?: string; imageError?: string }> }) {
+export default async function EditService({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
-  const [{ id }, sp] = await Promise.all([params, searchParams]);
+  const { id } = await params;
   const service = await getAdminService(id);
   if (!service) notFound();
   return (
@@ -22,8 +22,6 @@ export default async function EditService({ params, searchParams }: { params: Pr
           <Link href={`/admin/preview/services/${service.id}`} className="btn-outline">Preview</Link>
           <form action={setServicePublished}><input type="hidden" name="id" value={service.id} /><input type="hidden" name="publish" value={String(!service.is_published)} /><input type="hidden" name="back" value={`/admin/services/${service.id}/edit`} /><button type="submit" className="btn-dark">{service.is_published ? "Unpublish" : "Publish"}</button></form>
         </>} />
-      {sp.created ? <p role="status" className="mb-4 border border-green-300 bg-green-50 p-3 text-sm text-green-800">Service created.</p> : null}
-      {sp.imageError ? <p role="alert" className="mb-4 border border-red-300 bg-red-50 p-3 text-sm text-red-800">The service was created but its image could not be uploaded. Try again below.</p> : null}
       <div className="space-y-8">
         <section className="border border-steel-200 bg-white p-5"><ServiceForm service={service} /></section>
         {service.image_public_id ? (

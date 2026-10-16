@@ -23,8 +23,6 @@ export default async function AdminProducts({ searchParams }: { searchParams: SP
   return (
     <>
       <PageHeader title="Products" description={`${total} total`} actions={<Link href="/admin/products/new" className="btn-primary"><Plus className="h-4 w-4" aria-hidden /> New product</Link>} />
-      {sp.deleted ? <p role="status" className="mb-4 border border-green-300 bg-green-50 p-3 text-sm text-green-800">Product deleted.</p> : null}
-      {sp.error ? <p role="alert" className="mb-4 border border-red-300 bg-red-50 p-3 text-sm text-red-800">The product could not be deleted.</p> : null}
 
       <form className="mb-4 flex flex-col gap-3 sm:flex-row" role="search">
         <label htmlFor="q" className="sr-only">Search</label>

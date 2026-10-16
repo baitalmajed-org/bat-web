@@ -72,16 +72,21 @@ export async function removeServiceImage(formData: FormData): Promise<void> {
   const { error } = await supabase.from("services").update({ image_public_id: null }).eq("id", id);
   if (!error && data?.image_public_id) await releaseAsset(supabase, data.image_public_id);
   revalidatePublic();
-  redirect(`/admin/services/${id}/edit`);
+  if (error) redirect(`/admin/services/${id}/edit?error=image_remove`);
+  redirect(`/admin/services/${id}/edit?imageRemoved=1`);
 }
 
 export async function setServicePublished(formData: FormData): Promise<void> {
   await assertAdmin();
+  const publish = str(formData, "publish") === "true";
   const supabase = await createClient();
-  const { error } = await supabase.from("services").update({ is_published: str(formData, "publish") === "true" }).eq("id", str(formData, "id"));
+  const { error } = await supabase.from("services").update({ is_published: publish }).eq("id", str(formData, "id"));
   if (error) console.error("[admin] service publish toggle failed", error.message);
   revalidatePublic();
-  redirect(str(formData, "back") || "/admin/services");
+  const back = str(formData, "back") || "/admin/services";
+  const sep = back.includes("?") ? "&" : "?";
+  if (error) redirect(`${back}${sep}error=publish`);
+  redirect(`${back}${sep}published=${publish ? "1" : "0"}`);
 }
 
 export async function deleteService(formData: FormData): Promise<void> {

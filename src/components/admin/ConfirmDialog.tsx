@@ -24,7 +24,13 @@ export default function ConfirmDialog({ triggerLabel, title, description, confir
         <Trash2 className="h-4 w-4" aria-hidden /> {triggerLabel}
       </button>
       <dialog ref={ref} aria-labelledby="confirm-title" className="w-[min(28rem,92vw)] p-0 backdrop:bg-steel-900/60">
-        <form action={action} className="space-y-4 p-6">
+        <form
+          action={async (formData) => {
+            ref.current?.close();
+            await action(formData);
+          }}
+          className="space-y-4 p-6"
+        >
           <h2 id="confirm-title" className="text-lg">{title}</h2>
           <p className="text-sm text-steel-700">{description}</p>
           {Object.entries(fields).map(([k, v]) => (<input key={k} type="hidden" name={k} value={v} />))}

@@ -9,9 +9,8 @@ import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import SubmitButton from "@/components/admin/SubmitButton";
 import { Thumb } from "@/components/admin/ProductImages";
 
-export default async function AdminHomepage({ searchParams }: { searchParams: Promise<{ featured?: string; services?: string }> }) {
+export default async function AdminHomepage() {
   await requireAdmin();
-  const sp = await searchParams;
   const supabase = await createClient();
   const [sections, products, services] = await Promise.all([
     supabase.from("homepage_sections").select("*").order("sort_order"),
@@ -23,8 +22,6 @@ export default async function AdminHomepage({ searchParams }: { searchParams: Pr
   return (
     <>
       <PageHeader title="Homepage" description="Every section of the home page is editable here. Hidden sections do not appear on the website." />
-      {sp.featured ? <p role="status" className="mb-4 border border-green-300 bg-green-50 p-3 text-sm text-green-800">Featured products updated.</p> : null}
-      {sp.services ? <p role="status" className="mb-4 border border-green-300 bg-green-50 p-3 text-sm text-green-800">Homepage services updated.</p> : null}
       {sections.error ? <p role="alert" className="mb-4 border border-red-300 bg-red-50 p-3 text-sm text-red-800">Could not load sections. Have the migrations and seed been applied?</p> : null}
 
       <div className="space-y-8">

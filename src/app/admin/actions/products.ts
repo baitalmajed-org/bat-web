@@ -60,7 +60,10 @@ export async function setProductPublished(formData: FormData): Promise<void> {
   const { error } = await supabase.from("products").update({ is_published: publish }).eq("id", id);
   if (error) console.error("[admin] publish toggle failed", error.message);
   revalidatePublic();
-  redirect(str(formData, "back") || "/admin/products");
+  const back = str(formData, "back") || "/admin/products";
+  const sep = back.includes("?") ? "&" : "?";
+  if (error) redirect(`${back}${sep}error=publish`);
+  redirect(`${back}${sep}published=${publish ? "1" : "0"}`);
 }
 
 export async function deleteProduct(formData: FormData): Promise<void> {
@@ -149,7 +152,8 @@ export async function deleteProductImage(formData: FormData): Promise<void> {
   const { error } = await supabase.from("product_images").delete().eq("id", imageId);
   if (!error && img) await releaseAsset(supabase, img.public_id);
   revalidatePublic();
-  redirect(`/admin/products/${productId}/edit`);
+  if (error) redirect(`/admin/products/${productId}/edit?error=image_delete`);
+  redirect(`/admin/products/${productId}/edit?imageDeleted=1`);
 }
 
 export async function makePrimaryImage(formData: FormData): Promise<void> {
@@ -161,13 +165,15 @@ export async function makePrimaryImage(formData: FormData): Promise<void> {
   const order = [imageId, ...(data ?? []).map((r) => r.id).filter((i) => i !== imageId)];
   await Promise.all(order.map((id, i) => supabase.from("product_images").update({ sort_order: i }).eq("id", id)));
   revalidatePublic();
-  redirect(`/admin/products/${productId}/edit`);
+  redirect(`/admin/products/${productId}/edit?primary=1`);
 }
 
 export async function updateImageAlt(formData: FormData): Promise<void> {
   await assertAdmin();
   const supabase = await createClient();
-  await supabase.from("product_images").update({ alt_text: str(formData, "alt_text").trim().slice(0, 200) || null }).eq("id", str(formData, "imageId"));
+  const { error } = await supabase.from("product_images").update({ alt_text: str(formData, "alt_text").trim().slice(0, 200) || null }).eq("id", str(formData, "imageId"));
   revalidatePublic();
-  redirect(`/admin/products/${str(formData, "productId")}/edit`);
+  const productId = str(formData, "productId");
+  if (error) redirect(`/admin/products/${productId}/edit?error=image_update`);
+  redirect(`/admin/products/${productId}/edit?altSaved=1`);
 }

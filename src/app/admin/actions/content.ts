@@ -67,7 +67,8 @@ export async function removeHomeImage(formData: FormData): Promise<void> {
   const { error } = await supabase.from("homepage_sections").update({ image_public_id: null }).eq("key", key);
   if (!error && data?.image_public_id) await releaseAsset(supabase, data.image_public_id);
   revalidatePublic();
-  redirect("/admin/homepage");
+  if (error) redirect("/admin/homepage?error=image_remove");
+  redirect("/admin/homepage?imageRemoved=1");
 }
 
 export async function saveFeaturedProducts(formData: FormData): Promise<void> {
@@ -170,7 +171,8 @@ export async function resetLogo(): Promise<void> {
   const { error } = await supabase.from("site_settings").update({ logo_public_id: null }).eq("id", 1);
   if (!error && data?.logo_public_id) await releaseAsset(supabase, data.logo_public_id);
   revalidatePublic();
-  redirect("/admin/settings");
+  if (error) redirect("/admin/settings?error=logo_reset");
+  redirect("/admin/settings?logoReset=1");
 }
 
 export async function uploadLibraryImage(_prev: FormState, fd: FormData): Promise<FormState> {
