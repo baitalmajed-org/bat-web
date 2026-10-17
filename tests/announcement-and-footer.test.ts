@@ -3,6 +3,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import TopContactBar from "@/components/layout/TopContactBar";
 import Footer from "@/components/layout/Footer";
+import SettingsForm from "@/components/admin/SettingsForm";
 import { DEFAULT_SETTINGS } from "@/lib/data/public";
 import type { ServiceCard } from "@/lib/data/public-types";
 import type { SiteSettings } from "@/types/db";
@@ -187,6 +188,43 @@ describe("Twinplast-Style Top Contact & Social Bar (TopContactBar)", () => {
     // Container uses responsive flex-wrap
     expect(html).toContain("flex-wrap");
     expect(html).toContain("container-page");
+  });
+
+  it("5a. renders nothing (no burgundy strip and no reserved space) when top_bar_enabled is false", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(TopContactBar, {
+        settings: { ...mockSettings, top_bar_enabled: false },
+      })
+    );
+
+    expect(html).toBe("");
+    expect(html).not.toContain("<aside");
+    expect(html).not.toContain("bg-brand");
+    expect(html).not.toContain("info@bammetaluae.com");
+  });
+
+  it("5b. renders nothing when top_contact_bar_enabled is false", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(TopContactBar, {
+        settings: { ...mockSettings, top_contact_bar_enabled: false },
+      })
+    );
+
+    expect(html).toBe("");
+    expect(html).not.toContain("<aside");
+  });
+
+  it("5c. defaults to visible when top_bar_enabled is undefined or true", () => {
+    const withoutExplicit = { ...mockSettings };
+    delete (withoutExplicit as any).top_bar_enabled;
+    delete (withoutExplicit as any).top_contact_bar_enabled;
+
+    const html = renderToStaticMarkup(
+      React.createElement(TopContactBar, { settings: withoutExplicit as SiteSettings })
+    );
+
+    expect(html).toContain("<aside");
+    expect(html).toContain("info@bammetaluae.com");
   });
 });
 

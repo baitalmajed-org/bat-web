@@ -153,12 +153,34 @@ export async function saveSettings(_prev: FormState, fd: FormData): Promise<Form
     rawData.announcement_link_new_tab = bool(fd, "announcement_link_new_tab");
   }
 
+  const hasTopBar = fd.has("top_bar_enabled") || fd.has("top_contact_bar_enabled");
+  if (hasTopBar) {
+    const rawVal = fd.has("top_bar_enabled") ? fd.get("top_bar_enabled") : fd.get("top_contact_bar_enabled");
+    const isTrue =
+      rawVal !== "false" &&
+      rawVal !== "0" &&
+      rawVal !== "off" &&
+      bool(fd, fd.has("top_bar_enabled") ? "top_bar_enabled" : "top_contact_bar_enabled");
+    rawData.top_bar_enabled = isTrue;
+    rawData.top_contact_bar_enabled = isTrue;
+  } else if (fd.has("top_bar_toggle_present") || fd.has("has_top_bar_toggle")) {
+    rawData.top_bar_enabled = false;
+    rawData.top_contact_bar_enabled = false;
+  }
+
   const parsed = settingsSchema.safeParse(rawData);
   if (!parsed.success) return fail("Please correct the highlighted fields.", fieldErrors(parsed.error));
 
   const supabase = await createClient();
   const { data: current } = await supabase.from("site_settings").select("logo_public_id").eq("id", 1).maybeSingle();
-  const { error } = await supabase.from("site_settings").upsert({ id: 1, ...parsed.data }, { onConflict: "id" });
+  let { error } = await supabase.from("site_settings").upsert({ id: 1, ...parsed.data }, { onConflict: "id" });
+  if (error && (error.message?.includes("top_bar_enabled") || error.message?.includes("top_contact_bar_enabled"))) {
+    const { top_bar_enabled: _t1, top_contact_bar_enabled: _t2, ...fallbackData } = parsed.data as Record<string, unknown>;
+    const retry = await supabase.from("site_settings").upsert({ id: 1, ...fallbackData }, { onConflict: "id" });
+    if (!retry.error) {
+      error = null;
+    }
+  }
   if (error) return fail(dbMessage(error));
 
   const { directAsset, file: logo } = extractImageInput(fd, "logo");

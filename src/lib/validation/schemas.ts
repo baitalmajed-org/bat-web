@@ -131,6 +131,8 @@ export const settingsSchema = z.object({
   announcement_link_url: safeAnnouncementUrl,
   announcement_link_label: optionalText(80),
   announcement_link_new_tab: z.boolean().optional().default(false),
+  top_bar_enabled: z.boolean().optional().default(true),
+  top_contact_bar_enabled: z.boolean().optional().default(true),
   seo_default_title: optionalText(70),
   seo_default_description: optionalText(170),
   footer_description: optionalText(400),

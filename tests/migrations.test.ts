@@ -8,7 +8,13 @@ const sql = files.map((f) => readFileSync(path.join(dir, f), "utf8")).join("\n")
 
 describe("supabase migrations", () => {
   it("are ordered with numeric prefixes", () =>
-    expect(files).toEqual(["0001_schema.sql", "0002_functions.sql", "0003_rls.sql", "0004_announcement_and_social.sql"]));
+    expect(files).toEqual([
+      "0001_schema.sql",
+      "0002_functions.sql",
+      "0003_rls.sql",
+      "0004_announcement_and_social.sql",
+      "0005_top_contact_bar_visibility.sql",
+    ]));
 
   const tables = [...sql.matchAll(/create table public\.(\w+)/g)].map((m) => m[1]!);
   it("define the required tables", () => {

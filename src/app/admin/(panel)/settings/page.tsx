@@ -12,7 +12,14 @@ export default async function AdminSettings() {
   await requireAdmin();
   const supabase = await createClient();
   const { data } = await supabase.from("site_settings").select("*").eq("id", 1).maybeSingle();
-  const s = (data as SiteSettings | null) ?? DEFAULT_SETTINGS;
+  const raw = (data as Partial<SiteSettings> | null) ?? {};
+  const topBar = (raw as Record<string, unknown>).top_bar_enabled ?? (raw as Record<string, unknown>).top_contact_bar_enabled ?? true;
+  const s: SiteSettings = {
+    ...DEFAULT_SETTINGS,
+    ...raw,
+    top_bar_enabled: Boolean(topBar),
+    top_contact_bar_enabled: Boolean(topBar),
+  };
   return (
     <>
       <PageHeader title="Site settings" description="Contact details here are used across the whole website, links and emails." />

@@ -23,6 +23,11 @@ function XIcon({ className = "h-3.5 w-3.5" }: { className?: string }) {
 }
 
 export default function TopContactBar({ settings }: TopContactBarProps) {
+  const isEnabled = (settings?.top_bar_enabled ?? settings?.top_contact_bar_enabled) ?? true;
+  if (!isEnabled) {
+    return null;
+  }
+
   const socials = [
     { href: settings.facebook_url, label: `Visit ${settings.company_name} on Facebook`, Icon: Facebook },
     { href: settings.instagram_url, label: `Visit ${settings.company_name} on Instagram`, Icon: Instagram },

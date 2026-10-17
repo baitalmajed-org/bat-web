@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { saveSettings } from "@/app/admin/actions/content";
 import { useToast } from "@/components/admin/ToastProvider";
 import type { SiteSettings } from "@/types/db";
-import Field from "./Field";
+import Field, { Check } from "./Field";
 import FormMessage from "./FormMessage";
 import SubmitButton from "./SubmitButton";
 import { ImageUploadField, useDirectImageUpload } from "./ImageUploadField";
@@ -47,6 +47,17 @@ export default function SettingsForm({ s }: { s: SiteSettings }) {
           progress={progress}
           onError={setClientError}
           hint="Leave empty to keep the current logo. Transparent PNG or WebP recommended, max 2 MB."
+        />
+      </fieldset>
+      <fieldset className="space-y-4">
+        <legend className="mb-2 text-lg font-bold">Top contact and social bar</legend>
+        <input type="hidden" name="top_bar_toggle_present" value="1" />
+        <Check
+          id="top_bar_enabled"
+          name="top_bar_enabled"
+          label="Show top contact and social bar"
+          defaultChecked={s.top_bar_enabled ?? s.top_contact_bar_enabled ?? true}
+          hint="Display the burgundy contact and social media strip above the main navigation."
         />
       </fieldset>
       <fieldset className="space-y-4"><legend className="mb-2 text-lg font-bold">Contact</legend>
