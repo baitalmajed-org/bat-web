@@ -139,10 +139,21 @@ export async function saveAbout(_prev: FormState, fd: FormData): Promise<FormSta
 
 export async function saveSettings(_prev: FormState, fd: FormData): Promise<FormState> {
   await assertAdmin();
-  const keys = ["company_name", "tagline", "main_phone", "whatsapp_number", "secondary_phone", "email", "address_text", "business_hours",
-    "google_maps_url", "google_maps_embed_url", "facebook_url", "instagram_url", "linkedin_url", "youtube_url",
-    "seo_default_title", "seo_default_description", "footer_description", "response_time_commitment"];
-  const parsed = settingsSchema.safeParse(Object.fromEntries(keys.map((k) => [k, str(fd, k)])));
+  const keys = [
+    "company_name", "tagline", "main_phone", "whatsapp_number", "secondary_phone", "email", "address_text", "business_hours",
+    "google_maps_url", "google_maps_embed_url", "facebook_url", "instagram_url", "linkedin_url", "youtube_url", "x_url",
+    "seo_default_title", "seo_default_description", "footer_description", "response_time_commitment"
+  ];
+  const rawData: Record<string, unknown> = Object.fromEntries(keys.map((k) => [k, str(fd, k)]));
+  if (fd.has("announcement_enabled")) {
+    rawData.announcement_enabled = bool(fd, "announcement_enabled");
+    rawData.announcement_text = str(fd, "announcement_text");
+    rawData.announcement_link_url = str(fd, "announcement_link_url");
+    rawData.announcement_link_label = str(fd, "announcement_link_label");
+    rawData.announcement_link_new_tab = bool(fd, "announcement_link_new_tab");
+  }
+
+  const parsed = settingsSchema.safeParse(rawData);
   if (!parsed.success) return fail("Please correct the highlighted fields.", fieldErrors(parsed.error));
 
   const supabase = await createClient();

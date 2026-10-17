@@ -166,8 +166,8 @@ describe("Direct Upload Authorization & Security (signature.ts & cloudinary.ts)"
       expect(res.params.maxBytes).toBe(5 * 1024 * 1024);
 
       // CRITICAL SECURITY REQUIREMENT: API secret must NEVER appear in client payload
-      expect((res.params as Record<string, unknown>).apiSecret).toBeUndefined();
-      expect((res.params as Record<string, unknown>).api_secret).toBeUndefined();
+      expect((res.params as unknown as Record<string, unknown>).apiSecret).toBeUndefined();
+      expect((res.params as unknown as Record<string, unknown>).api_secret).toBeUndefined();
       expect(JSON.stringify(res.params)).not.toContain("super-secret-cloudinary-key");
     }
   });

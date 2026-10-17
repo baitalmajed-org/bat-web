@@ -89,6 +89,24 @@ export const serviceSchema = z.object({
   seo_description: optionalText(170),
 });
 
+export const safeAnnouncementUrl = z
+  .string()
+  .trim()
+  .max(500)
+  .optional()
+  .transform((v) => (v ? v : null))
+  .refine((v) => {
+    if (v === null) return true;
+    if (/^(javascript|vbscript|data):/i.test(v)) return false;
+    if (/^\/[a-zA-Z0-9_\-\/?#&=.%]*$/.test(v)) return true;
+    try {
+      const u = new URL(v);
+      return u.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }, "Must be a valid https:// URL or an internal path starting with /");
+
 export const settingsSchema = z.object({
   company_name: z.string().trim().min(2).max(120),
   tagline: optionalText(200),
@@ -107,6 +125,12 @@ export const settingsSchema = z.object({
   instagram_url: optionalUrl,
   linkedin_url: optionalUrl,
   youtube_url: optionalUrl,
+  x_url: optionalUrl,
+  announcement_enabled: z.boolean().optional().default(false),
+  announcement_text: optionalText(300),
+  announcement_link_url: safeAnnouncementUrl,
+  announcement_link_label: optionalText(80),
+  announcement_link_new_tab: z.boolean().optional().default(false),
   seo_default_title: optionalText(70),
   seo_default_description: optionalText(170),
   footer_description: optionalText(400),

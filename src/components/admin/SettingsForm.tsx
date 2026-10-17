@@ -66,7 +66,13 @@ export default function SettingsForm({ s }: { s: SiteSettings }) {
       </fieldset>
       <fieldset className="space-y-4"><legend className="mb-2 text-lg font-bold">Social media</legend>
         <p className="text-sm text-steel-600">Only links you enter appear on the website.</p>
-        <div className="grid gap-4 sm:grid-cols-2">{t("facebook_url", "Facebook URL")}{t("instagram_url", "Instagram URL")}{t("linkedin_url", "LinkedIn URL")}{t("youtube_url", "YouTube URL")}</div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {t("facebook_url", "Facebook URL")}
+          {t("instagram_url", "Instagram URL")}
+          {t("x_url", "X (Twitter) URL")}
+          {t("youtube_url", "YouTube URL")}
+          {t("linkedin_url", "LinkedIn URL")}
+        </div>
       </fieldset>
       <fieldset className="space-y-4"><legend className="mb-2 text-lg font-bold">SEO and footer</legend>
         {t("seo_default_title", "Default page title", { hint: "Up to 70 characters." })}
