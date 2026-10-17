@@ -64,9 +64,7 @@ export default async function HomePage() {
           </div>
           <ProductCarousel label="Featured products">
             {featured.map((p) => (
-              <li key={p.id}>
-                <ProductCard product={p} sizes="(min-width:1024px) 24vw, (min-width:640px) 44vw, 72vw" />
-              </li>
+              <ProductCard key={p.id} product={p} sizes="(min-width:1024px) 296px, (min-width:640px) 272px, 78vw" />
             ))}
           </ProductCarousel>
         </section>

@@ -7,6 +7,8 @@ import { Eye, EyeOff, Pencil, Plus, ExternalLink } from "lucide-react";
 import StatusBadge from "@/components/admin/StatusBadge";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import ServiceModal from "@/components/admin/ServiceModal";
+import { Thumb } from "@/components/admin/ProductImages";
+import ServiceIcon from "@/components/ui/ServiceIcon";
 import { deleteService, setServicePublished } from "@/app/admin/actions/services";
 import type { Service } from "@/types/db";
 
@@ -78,11 +80,24 @@ export default function ServicesManager({ services }: ServicesManagerProps) {
                   className="border-t border-steel-200 hover:bg-steel-50/50 transition-colors"
                 >
                   <td className="p-3">
-                    <p className="font-semibold text-steel-900">{s.title}</p>
-                    <p className="text-xs text-steel-500">
-                      /{s.slug}
-                      {s.is_sample ? " · sample" : ""}
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded border border-steel-200 bg-steel-100">
+                        {s.image_public_id ? (
+                          <Thumb publicId={s.image_public_id} alt={s.image_alt ?? s.title} />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-steel-400 bg-steel-50">
+                            <ServiceIcon name={s.icon} className="h-5 w-5" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-steel-900">{s.title}</p>
+                        <p className="text-xs text-steel-500">
+                          /{s.slug}
+                          {s.is_sample ? " · sample" : ""}
+                        </p>
+                      </div>
+                    </div>
                   </td>
                   <td className="p-3">
                     {s.show_on_home ? (
