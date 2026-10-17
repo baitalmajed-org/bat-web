@@ -10,6 +10,7 @@ import type { Service } from "@/types/db";
 import Field, { Check } from "./Field";
 import FormMessage from "./FormMessage";
 import SubmitButton from "./SubmitButton";
+import { Thumb } from "./ProductImages";
 
 import { ImageUploadField, useDirectImageUpload } from "./ImageUploadField";
 
@@ -165,6 +166,25 @@ export default function ServiceForm({
         <h3 className="text-sm font-bold uppercase tracking-wider text-steel-500 border-b border-steel-200 pb-1">
           4. Media & SEO
         </h3>
+
+        {service?.image_public_id ? (
+          <div className="flex flex-col sm:flex-row items-start gap-4 p-4 rounded border border-steel-200 bg-steel-50">
+            <div className="w-32 shrink-0">
+              <p className="mb-1.5 text-xs font-semibold text-steel-700">Current photo:</p>
+              <Thumb publicId={service.image_public_id} alt={service.image_alt ?? service.title} />
+            </div>
+            <div className="flex-1 space-y-2">
+              <p className="text-xs text-steel-600">
+                This image appears on the homepage services showcase and service detail page.
+              </p>
+              <Check
+                name="remove_image"
+                label="Remove this image (revert to icon fallback)"
+              />
+            </div>
+          </div>
+        ) : null}
+
         <div className="grid gap-4 sm:grid-cols-2">
           <ImageUploadField
             id="image"
@@ -177,7 +197,7 @@ export default function ServiceForm({
             onError={setClientError}
             hint="Upload service photo up to 5 MB."
           />
-          <Field id="image_alt" label="Image alt text" error={e.image_alt}>
+          <Field id="image_alt" label="Image alt text" error={e.image_alt} hint="Describe what is in the photo for accessibility.">
             <input
               id="image_alt"
               name="image_alt"
