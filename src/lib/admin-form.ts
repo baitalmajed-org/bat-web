@@ -5,7 +5,8 @@ export function str(fd: FormData, key: string): string {
   return typeof v === "string" ? v : "";
 }
 export function bool(fd: FormData, key: string): boolean {
-  return fd.get(key) === "on";
+  const v = fd.get(key);
+  return v === "on" || v === "true" || v === "1";
 }
 export function file(fd: FormData, key: string): File | null {
   const v = fd.get(key);

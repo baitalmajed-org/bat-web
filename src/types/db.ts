@@ -17,6 +17,14 @@ export type SiteSettings = {
   instagram_url: string | null;
   linkedin_url: string | null;
   youtube_url: string | null;
+  x_url: string | null;
+  announcement_enabled: boolean;
+  announcement_text: string | null;
+  announcement_link_url: string | null;
+  announcement_link_label: string | null;
+  announcement_link_new_tab: boolean;
+  top_bar_enabled: boolean;
+  top_contact_bar_enabled: boolean;
   seo_default_title: string | null;
   seo_default_description: string | null;
   footer_description: string | null;

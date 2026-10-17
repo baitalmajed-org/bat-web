@@ -23,6 +23,14 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   instagram_url: null,
   linkedin_url: null,
   youtube_url: null,
+  x_url: null,
+  announcement_enabled: false,
+  announcement_text: null,
+  announcement_link_url: null,
+  announcement_link_label: null,
+  announcement_link_new_tab: false,
+  top_bar_enabled: true,
+  top_contact_bar_enabled: true,
   seo_default_title: `${COMPANY.name} | Steel Fabrication in Ajman, UAE`,
   seo_default_description: "Industrial steel fabrication and metal works in Ajman, UAE.",
   footer_description: null,
@@ -53,7 +61,14 @@ export const getSettings = () =>
     async () => {
       const { data, error } = await createPublicClient().from("site_settings").select("*").eq("id", 1).maybeSingle();
       if (error) throw new Error(error.message);
-      return (data as SiteSettings | null) ?? DEFAULT_SETTINGS;
+      if (!data) return DEFAULT_SETTINGS;
+      const topBar = (data as Record<string, unknown>).top_bar_enabled ?? (data as Record<string, unknown>).top_contact_bar_enabled ?? true;
+      return {
+        ...DEFAULT_SETTINGS,
+        ...data,
+        top_bar_enabled: Boolean(topBar),
+        top_contact_bar_enabled: Boolean(topBar),
+      };
     },
     DEFAULT_SETTINGS,
   );

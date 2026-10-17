@@ -1,6 +1,6 @@
 export type FormState = {
   ok: boolean;
-  message?: string;
+  message?: string | null;
   reference?: string;
   errors?: Record<string, string>;
   values?: Record<string, string>;

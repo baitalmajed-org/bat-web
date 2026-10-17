@@ -46,10 +46,76 @@ describe("settingsSchema", () => {
   it("accepts valid settings and nulls empty fields", () => {
     const r = settingsSchema.safeParse(base);
     expect(r.success).toBe(true);
-    if (r.success) { expect(r.data.facebook_url).toBeNull(); expect(r.data.secondary_phone).toBeNull(); }
+    if (r.success) {
+      expect(r.data.facebook_url).toBeNull();
+      expect(r.data.secondary_phone).toBeNull();
+      expect(r.data.x_url).toBeNull();
+      expect(r.data.announcement_enabled).toBe(false);
+      expect(r.data.announcement_text).toBeNull();
+      expect(r.data.announcement_link_url).toBeNull();
+      expect(r.data.announcement_link_label).toBeNull();
+      expect(r.data.announcement_link_new_tab).toBe(false);
+    }
   });
-  it("rejects non-https social URLs", () => expect(settingsSchema.safeParse({ ...base, facebook_url: "javascript:alert(1)" }).success).toBe(false));
+  it("rejects non-https social URLs", () => {
+    expect(settingsSchema.safeParse({ ...base, facebook_url: "javascript:alert(1)" }).success).toBe(false);
+    expect(settingsSchema.safeParse({ ...base, x_url: "javascript:alert(1)" }).success).toBe(false);
+    expect(settingsSchema.safeParse({ ...base, x_url: "http://x.com/bam" }).success).toBe(false);
+  });
+  it("accepts valid https social URLs including x_url", () => {
+    const r = settingsSchema.safeParse({
+      ...base,
+      facebook_url: "https://facebook.com/bammetal",
+      instagram_url: "https://instagram.com/bammetal",
+      x_url: "https://x.com/bammetal",
+      youtube_url: "https://youtube.com/@bammetal",
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.x_url).toBe("https://x.com/bammetal");
+      expect(r.data.facebook_url).toBe("https://facebook.com/bammetal");
+    }
+  });
   it("rejects maps embed from other hosts", () => expect(settingsSchema.safeParse({ ...base, google_maps_embed_url: "https://evil.example/embed" }).success).toBe(false));
+  it("accepts valid announcement bar configuration with relative internal link", () => {
+    const r = settingsSchema.safeParse({
+      ...base,
+      announcement_enabled: true,
+      announcement_text: "Special Ramadan offer on steel fabrication works",
+      announcement_link_url: "/services/steel-fabrication",
+      announcement_link_label: "View Offer",
+      announcement_link_new_tab: false,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.announcement_enabled).toBe(true);
+      expect(r.data.announcement_text).toBe("Special Ramadan offer on steel fabrication works");
+      expect(r.data.announcement_link_url).toBe("/services/steel-fabrication");
+      expect(r.data.announcement_link_label).toBe("View Offer");
+      expect(r.data.announcement_link_new_tab).toBe(false);
+    }
+  });
+  it("accepts valid announcement bar configuration with external https link", () => {
+    const r = settingsSchema.safeParse({
+      ...base,
+      announcement_enabled: true,
+      announcement_text: "Visit our exhibition stall",
+      announcement_link_url: "https://steel-expo.ae/bam",
+      announcement_link_label: "Register Now",
+      announcement_link_new_tab: true,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.announcement_link_url).toBe("https://steel-expo.ae/bam");
+      expect(r.data.announcement_link_new_tab).toBe(true);
+    }
+  });
+  it("rejects unsafe announcement URLs like javascript: and data: schemes", () => {
+    expect(settingsSchema.safeParse({ ...base, announcement_link_url: "javascript:alert(1)" }).success).toBe(false);
+    expect(settingsSchema.safeParse({ ...base, announcement_link_url: "javascript:void(0)" }).success).toBe(false);
+    expect(settingsSchema.safeParse({ ...base, announcement_link_url: "data:text/html,<script>alert(1)</script>" }).success).toBe(false);
+    expect(settingsSchema.safeParse({ ...base, announcement_link_url: "http://insecure-site.com" }).success).toBe(false);
+  });
 });
 
 describe("validateImageFile", () => {

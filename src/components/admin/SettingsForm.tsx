@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { saveSettings } from "@/app/admin/actions/content";
 import { useToast } from "@/components/admin/ToastProvider";
 import type { SiteSettings } from "@/types/db";
-import Field from "./Field";
+import Field, { Check } from "./Field";
 import FormMessage from "./FormMessage";
 import SubmitButton from "./SubmitButton";
 import { ImageUploadField, useDirectImageUpload } from "./ImageUploadField";
@@ -49,6 +49,17 @@ export default function SettingsForm({ s }: { s: SiteSettings }) {
           hint="Leave empty to keep the current logo. Transparent PNG or WebP recommended, max 2 MB."
         />
       </fieldset>
+      <fieldset className="space-y-4">
+        <legend className="mb-2 text-lg font-bold">Top contact and social bar</legend>
+        <input type="hidden" name="top_bar_toggle_present" value="1" />
+        <Check
+          id="top_bar_enabled"
+          name="top_bar_enabled"
+          label="Show top contact and social bar"
+          defaultChecked={s.top_bar_enabled ?? s.top_contact_bar_enabled ?? true}
+          hint="Display the burgundy contact and social media strip above the main navigation."
+        />
+      </fieldset>
       <fieldset className="space-y-4"><legend className="mb-2 text-lg font-bold">Contact</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           {t("main_phone", "Main telephone", { type: "tel" })}{t("whatsapp_number", "WhatsApp number", { type: "tel" })}
@@ -66,7 +77,13 @@ export default function SettingsForm({ s }: { s: SiteSettings }) {
       </fieldset>
       <fieldset className="space-y-4"><legend className="mb-2 text-lg font-bold">Social media</legend>
         <p className="text-sm text-steel-600">Only links you enter appear on the website.</p>
-        <div className="grid gap-4 sm:grid-cols-2">{t("facebook_url", "Facebook URL")}{t("instagram_url", "Instagram URL")}{t("linkedin_url", "LinkedIn URL")}{t("youtube_url", "YouTube URL")}</div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {t("facebook_url", "Facebook URL")}
+          {t("instagram_url", "Instagram URL")}
+          {t("x_url", "X (Twitter) URL")}
+          {t("youtube_url", "YouTube URL")}
+          {t("linkedin_url", "LinkedIn URL")}
+        </div>
       </fieldset>
       <fieldset className="space-y-4"><legend className="mb-2 text-lg font-bold">SEO and footer</legend>
         {t("seo_default_title", "Default page title", { hint: "Up to 70 characters." })}

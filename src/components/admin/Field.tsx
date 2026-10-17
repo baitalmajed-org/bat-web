@@ -9,10 +9,32 @@ export default function Field({ id, label, error, hint, children }: { id: string
   );
 }
 
-export function Check({ name, label, defaultChecked }: { name: string; label: string; defaultChecked?: boolean }) {
+export function Check({
+  id,
+  name,
+  label,
+  defaultChecked,
+  hint,
+}: {
+  id?: string;
+  name: string;
+  label: string;
+  defaultChecked?: boolean;
+  hint?: string;
+}) {
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <input type="checkbox" name={name} defaultChecked={defaultChecked} className="h-4 w-4 accent-[#791A30]" /> {label}
-    </label>
+    <div>
+      <label htmlFor={id} className="flex items-start gap-2 text-sm font-medium text-steel-900 cursor-pointer">
+        <input
+          id={id}
+          type="checkbox"
+          name={name}
+          defaultChecked={defaultChecked}
+          className="mt-0.5 h-4 w-4 accent-[#791A30] cursor-pointer"
+        />
+        <span>{label}</span>
+      </label>
+      {hint ? <p className="mt-1 text-xs text-steel-500 ml-6">{hint}</p> : null}
+    </div>
   );
 }
