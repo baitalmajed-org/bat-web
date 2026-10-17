@@ -1,3 +1,4 @@
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { MessageCircle, Phone } from "lucide-react";
@@ -19,7 +20,14 @@ export default function Header({ settings }: { settings: SiteSettings }) {
         </Link>
 
         <div className="flex items-center gap-3">
-          <HeaderNav links={NAV_LINKS} telHref={telHref(settings.main_phone)} waHref={whatsappHref(settings.whatsapp_number)} phoneLabel={settings.main_phone} />
+          <HeaderNav
+            links={NAV_LINKS}
+            telHref={telHref(settings.main_phone)}
+            waHref={whatsappHref(settings.whatsapp_number)}
+            phoneLabel={settings.main_phone}
+            companyName={settings.company_name}
+            logoPublicId={settings.logo_public_id}
+          />
           <a href={telHref(settings.main_phone)} className="btn-outline hidden xl:inline-flex"><Phone className="h-4 w-4" aria-hidden /> {settings.main_phone}</a>
           <a href={whatsappHref(settings.whatsapp_number)} target="_blank" rel="noopener noreferrer" className="btn-primary hidden sm:inline-flex">
             <MessageCircle className="h-4 w-4" aria-hidden /> WhatsApp
