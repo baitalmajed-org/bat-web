@@ -45,8 +45,17 @@ export async function saveService(id: string | null, _prev: FormState, fd: FormD
     serviceId = data.id;
   }
 
+  const shouldRemoveImage = bool(fd, "remove_image");
+  if (shouldRemoveImage && serviceId && oldPublicId) {
+    const { error: remErr } = await supabase.from("services").update({ image_public_id: null }).eq("id", serviceId);
+    if (!remErr) {
+      await releaseAsset(supabase, oldPublicId);
+      oldPublicId = null;
+    }
+  }
+
   const { directAsset, file: image } = extractImageInput(fd, "image");
-  if ((directAsset || image) && serviceId) {
+  if (!shouldRemoveImage && (directAsset || image) && serviceId) {
     const result = await saveImage({
       supabase, file: image, directAsset, purpose: "service", alt: payload.image_alt, oldPublicId,
       applyUpdate: async (a) => {
@@ -78,8 +87,10 @@ export async function removeServiceImage(formData: FormData): Promise<void> {
   const { error } = await supabase.from("services").update({ image_public_id: null }).eq("id", id);
   if (!error && data?.image_public_id) await releaseAsset(supabase, data.image_public_id);
   revalidatePublic();
-  if (error) redirect(`/admin/services/${id}/edit?error=image_remove`);
-  redirect(`/admin/services/${id}/edit?imageRemoved=1`);
+  const back = str(formData, "back") || `/admin/services/${id}/edit`;
+  const sep = back.includes("?") ? "&" : "?";
+  if (error) redirect(`${back}${sep}error=image_remove`);
+  redirect(`${back}${sep}imageRemoved=1`);
 }
 
 export async function setServicePublished(formData: FormData): Promise<void> {

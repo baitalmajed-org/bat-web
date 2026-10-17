@@ -61,3 +61,117 @@
 .animate-backdrop-in {
   animation: backdropFadeIn 0.2s ease-out forwards;
 }
+
+/* ---------------------------------------------------------------------------
+   Homepage product marquee
+   Every item carries its own trailing gap (margin-right), so the two duplicated
+   halves of the track are pixel-identical and translateX(-50%) equals exactly
+   one full sequence — the loop is seamless at every breakpoint.
+   --------------------------------------------------------------------------- */
+.product-marquee {
+  --marquee-card: min(78vw, 20rem);
+  --marquee-gap: 1rem;
+  --marquee-inset: 1rem;
+  position: relative;
+  overflow: hidden;
+  padding-block: 0.5rem; /* room for card hover shadow */
+}
+
+@media (min-width: 640px) {
+  .product-marquee {
+    --marquee-card: 17rem;
+    --marquee-gap: 1.25rem;
+    --marquee-inset: 1.5rem;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-marquee {
+    --marquee-card: 18.5rem;
+    --marquee-gap: 1.5rem;
+    --marquee-inset: 0px;
+  }
+}
+
+.product-marquee__track {
+  display: flex;
+  width: max-content;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: productMarquee var(--marquee-duration, 40s) linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.product-marquee__item {
+  display: flex;
+  flex: 0 0 var(--marquee-card);
+  width: var(--marquee-card);
+  margin-right: var(--marquee-gap);
+}
+
+.product-marquee__item > * {
+  width: 100%;
+}
+
+.product-marquee__static {
+  --marquee-card: min(78vw, 20rem);
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@keyframes productMarquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* Pause while the pointer hovers (real hover devices only, avoids sticky taps),
+   during a touch press, or while keyboard focus is inside the region. */
+@media (hover: hover) {
+  .product-marquee:hover .product-marquee__track {
+    animation-play-state: paused;
+  }
+}
+
+.product-marquee:active .product-marquee__track,
+.product-marquee:focus-within .product-marquee__track {
+  animation-play-state: paused;
+}
+
+/* Reduced motion: no continuous movement — a static, manually scrollable list
+   of the original products only (clones are hidden). */
+@media (prefers-reduced-motion: reduce) {
+  .product-marquee {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--marquee-inset);
+    scrollbar-width: thin;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .product-marquee__track {
+    animation: none !important;
+    transform: none;
+    will-change: auto;
+    padding-inline: var(--marquee-inset);
+  }
+
+  .product-marquee__item {
+    scroll-snap-align: start;
+  }
+
+  .product-marquee__item[aria-hidden="true"] {
+    display: none;
+  }
+}
