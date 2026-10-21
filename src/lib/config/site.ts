@@ -43,3 +43,28 @@ export const NAV_LINKS = [
   { href: "/services", label: "Services" },
   { href: "/contact", label: "Contact" },
 ] as const;
+
+export function isSafeUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  const trimmed = url.trim();
+  if (/^javascript:/i.test(trimmed)) return false;
+  return /^https?:\/\//i.test(trimmed);
+}
+
+/**
+ * Checks whether the administrator has provided an actual YouTube channel or video link
+ * rather than an empty string, null, or a bare root domain like "https://youtube.com".
+ */
+export function isConfiguredYoutubeUrl(url: string | null | undefined): boolean {
+  if (!isSafeUrl(url)) return false;
+  const trimmed = url!.trim().replace(/\/+$/, "").toLowerCase();
+  const bareRoots = [
+    "https://youtube.com",
+    "https://www.youtube.com",
+    "http://youtube.com",
+    "http://www.youtube.com",
+    "https://m.youtube.com",
+  ];
+  return !bareRoots.includes(trimmed);
+}
+

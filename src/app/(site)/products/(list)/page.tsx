@@ -5,6 +5,7 @@ import { PAGE_SIZE, getCategories, getProducts } from "@/lib/data/public";
 import { buildMetadata } from "@/lib/seo/metadata";
 import ProductCard from "@/components/products/ProductCard";
 import Pagination from "@/components/ui/Pagination";
+import CategoryFilterBar from "@/components/products/CategoryFilterBar";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 
 type SP = Promise<{ category?: string; q?: string; page?: string }>;
@@ -35,7 +36,6 @@ export default async function ProductsPage({ searchParams }: { searchParams: SP 
     const qs = params.toString();
     return qs ? `/products?${qs}` : "/products";
   };
-  const chip = (active: boolean) => `inline-flex min-h-10 items-center border px-4 text-sm font-medium transition-colors ${active ? "border-brand bg-brand text-white" : "border-steel-300 bg-white text-steel-800 hover:border-brand hover:text-brand"}`;
 
   return (
     <>
@@ -47,20 +47,30 @@ export default async function ProductsPage({ searchParams }: { searchParams: SP 
         </div>
       </section>
 
-      <div className="container-page py-10">
-        <form action="/products" method="get" role="search" className="flex flex-col gap-3 sm:flex-row">
+      <div className="container-page py-8 sm:py-10">
+        <form action="/products" method="get" role="search" className="flex items-center gap-2 max-w-xl">
           {category ? <input type="hidden" name="category" value={category} /> : null}
           <label htmlFor="q" className="sr-only">Search products</label>
-          <input id="q" name="q" type="search" defaultValue={q} placeholder="Search products" className="field sm:max-w-md" />
-          <button type="submit" className="btn-dark"><Search className="h-4 w-4" aria-hidden /> Search</button>
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-steel-400 pointer-events-none" aria-hidden="true" />
+            <input
+              id="q"
+              name="q"
+              type="search"
+              defaultValue={q}
+              placeholder="Search products..."
+              className="w-full h-11 pl-10 pr-4 text-sm rounded-lg sm:rounded-md border border-steel-300 bg-white placeholder:text-steel-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand shadow-xs transition-colors"
+            />
+          </div>
+          <button
+            type="submit"
+            className="inline-flex h-11 items-center justify-center gap-2 px-5 rounded-lg sm:rounded-md bg-steel-900 text-white text-sm font-semibold hover:bg-steel-800 transition-colors shadow-xs shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-steel-900"
+          >
+            <span>Search</span>
+          </button>
         </form>
 
-        <nav aria-label="Product categories" className="mt-5 flex flex-wrap gap-2">
-          <Link href={q ? `/products?q=${encodeURIComponent(q)}` : "/products"} className={chip(!category)} aria-current={!category ? "page" : undefined}>All</Link>
-          {categories.map((c) => (
-            <Link key={c.id} href={`/products?category=${c.slug}${q ? `&q=${encodeURIComponent(q)}` : ""}`} className={chip(category === c.slug)} aria-current={category === c.slug ? "page" : undefined}>{c.name}</Link>
-          ))}
-        </nav>
+        <CategoryFilterBar categories={categories} activeCategory={category} searchQuery={q} />
 
         <div className="mt-8" aria-live="polite">
           {result.failed ? (
@@ -74,8 +84,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: SP 
           ) : (
             <>
               <p className="mb-4 text-sm text-steel-600">{result.total} product{result.total === 1 ? "" : "s"}</p>
-              <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                {result.items.map((p) => (<li key={p.id}><ProductCard product={p} /></li>))}
+              <ul className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                {result.items.map((p) => (<li key={p.id} className="h-full"><ProductCard product={p} /></li>))}
               </ul>
               <Pagination page={page} totalPages={totalPages} hrefFor={hrefFor} />
             </>

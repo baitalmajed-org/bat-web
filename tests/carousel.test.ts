@@ -39,9 +39,9 @@ describe("Product marquee — interaction and accessibility", () => {
     expect(cssSrc).toContain("animation-play-state: paused");
   });
 
-  it("hides duplicated cards from assistive tech and keyboard navigation", () => {
+  it("hides duplicated cards from assistive tech while preserving clickability", () => {
     expect(carouselSrc).toContain("aria-hidden={isClone || undefined}");
-    expect(carouselSrc).toContain("inert={isClone || undefined}");
+    expect(carouselSrc).not.toContain("inert={isClone || undefined}");
   });
 
   it("disables the animation and allows manual scrolling under prefers-reduced-motion", () => {

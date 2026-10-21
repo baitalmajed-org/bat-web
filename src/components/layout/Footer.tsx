@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, Clock, Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Youtube } from "lucide-react";
-import { NAV_LINKS, telHref } from "@/lib/config/site";
+import { ChevronDown, Clock, Facebook, Instagram, Mail, MapPin, Phone, Youtube } from "lucide-react";
+import { NAV_LINKS, isConfiguredYoutubeUrl, isSafeUrl, telHref } from "@/lib/config/site";
 import type { Category, ServiceCard } from "@/lib/data/public-types";
 import type { SiteSettings } from "@/types/db";
 import CloudImage from "@/components/ui/CloudImage";
@@ -14,13 +14,6 @@ type Props = {
   services: ServiceCard[];
   categories?: Category[];
 };
-
-function isSafeUrl(url: string | null | undefined): boolean {
-  if (!url) return false;
-  const trimmed = url.trim();
-  if (/^javascript:/i.test(trimmed)) return false;
-  return /^https?:\/\//i.test(trimmed);
-}
 
 function XIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -41,13 +34,14 @@ export default function Footer({ settings, services }: Props) {
     { href: settings.facebook_url, label: `Visit ${settings.company_name} on Facebook`, Icon: Facebook },
     { href: settings.instagram_url, label: `Visit ${settings.company_name} on Instagram`, Icon: Instagram },
     { href: settings.x_url, label: `Visit ${settings.company_name} on X (Twitter)`, Icon: XIcon },
-    { href: settings.youtube_url, label: `Visit ${settings.company_name} on YouTube`, Icon: Youtube },
-    { href: settings.linkedin_url, label: `Visit ${settings.company_name} on LinkedIn`, Icon: Linkedin },
+    ...(isConfiguredYoutubeUrl(settings.youtube_url)
+      ? [{ href: settings.youtube_url, label: `Visit ${settings.company_name} on YouTube`, Icon: Youtube }]
+      : []),
   ].filter((s) => Boolean(s.href && isSafeUrl(s.href)));
 
   return (
     <footer className="bg-steel-900 text-steel-200">
-      <div className="container-page grid gap-8 py-10 md:grid-cols-2 lg:grid-cols-4 md:py-14">
+      <div className="container-page grid gap-8 pt-8 pb-4 md:grid-cols-2 lg:grid-cols-4 md:py-12">
         {/* Company info & socials — always visible without expansion */}
         <div>
           <div className="relative mb-4 inline-block h-14 w-44">
@@ -178,7 +172,7 @@ export default function Footer({ settings, services }: Props) {
         </div>
 
         {/* Contact Section */}
-        <div className="border-b border-steel-800 pb-4 md:border-b-0 md:pb-0">
+        <div className="pb-1 md:pb-0">
           <h2>
             <button
               type="button"
@@ -258,9 +252,19 @@ export default function Footer({ settings, services }: Props) {
 
       {/* Copyright / Legal bar */}
       <div className="border-t border-steel-800">
-        <div className="container-page flex flex-col gap-2 py-5 text-xs text-steel-500 sm:flex-row sm:justify-between">
+        <div className="container-page flex flex-col items-center justify-center gap-1.5 py-2.5 text-center text-xs text-steel-500 sm:flex-row sm:justify-between sm:items-center sm:text-left sm:py-3">
           <p>&copy; {new Date().getFullYear()} {settings.company_name}. All rights reserved.</p>
-          <p>Steel fabrication &amp; metal works &middot; Ajman, UAE</p>
+          <p>
+            Crafted by{" "}
+            <a
+              href="https://www.ekodrix.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-steel-400 hover:text-white transition-colors underline-offset-4 hover:underline"
+            >
+              Ekodrix
+            </a>
+          </p>
         </div>
       </div>
     </footer>
