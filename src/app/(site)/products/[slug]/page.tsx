@@ -81,7 +81,7 @@ export default async function ProductPage({ params }: { params: Params }) {
         {related.length > 0 ? (
           <section className="mt-14" aria-labelledby="related">
             <h2 id="related" className="mb-6 text-2xl">Related products</h2>
-            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{related.map((p) => (<li key={p.id}><ProductCard product={p} /></li>))}</ul>
+            <ul className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-4">{related.map((p) => (<li key={p.id} className="h-full"><ProductCard product={p} /></li>))}</ul>
           </section>
         ) : null}
       </div>

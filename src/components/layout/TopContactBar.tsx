@@ -1,18 +1,11 @@
 import React from "react";
-import { Facebook, Instagram, Linkedin, Mail, Phone, Youtube } from "lucide-react";
-import { telHref } from "@/lib/config/site";
+import { Facebook, Instagram, Phone, Youtube } from "lucide-react";
+import { isConfiguredYoutubeUrl, isSafeUrl, telHref } from "@/lib/config/site";
 import type { SiteSettings } from "@/types/db";
 
 export type TopContactBarProps = {
   settings: SiteSettings;
 };
-
-function isSafeUrl(url: string | null | undefined): boolean {
-  if (!url) return false;
-  const trimmed = url.trim();
-  if (/^javascript:/i.test(trimmed)) return false;
-  return /^https?:\/\//i.test(trimmed);
-}
 
 function XIcon({ className = "h-3.5 w-3.5" }: { className?: string }) {
   return (
@@ -32,36 +25,26 @@ export default function TopContactBar({ settings }: TopContactBarProps) {
     { href: settings.facebook_url, label: `Visit ${settings.company_name} on Facebook`, Icon: Facebook },
     { href: settings.instagram_url, label: `Visit ${settings.company_name} on Instagram`, Icon: Instagram },
     { href: settings.x_url, label: `Visit ${settings.company_name} on X (Twitter)`, Icon: XIcon },
-    { href: settings.youtube_url, label: `Visit ${settings.company_name} on YouTube`, Icon: Youtube },
-    { href: settings.linkedin_url, label: `Visit ${settings.company_name} on LinkedIn`, Icon: Linkedin },
+    ...(isConfiguredYoutubeUrl(settings.youtube_url)
+      ? [{ href: settings.youtube_url, label: `Visit ${settings.company_name} on YouTube`, Icon: Youtube }]
+      : []),
   ].filter((s) => Boolean(s.href && isSafeUrl(s.href)));
 
   return (
     <aside
       aria-label="Top contact and social links"
-      className="relative z-50 w-full border-b border-brand-800 bg-brand text-steel-100 text-xs py-1.5 sm:py-2 px-3 sm:px-4"
+      className="relative z-50 w-full border-b border-brand-800 bg-brand text-steel-100 text-[11px] sm:text-xs py-1.5 sm:py-2"
     >
-      <div className="container-page flex flex-wrap items-center justify-between gap-y-1.5 gap-x-4">
-        {/* Left: Contact details */}
-        <div className="flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-1 font-medium">
-          {settings.email ? (
-            <a
-              href={`mailto:${settings.email}`}
-              className="inline-flex items-center gap-1.5 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
-              aria-label={`Email us at ${settings.email}`}
-            >
-              <Mail className="h-3.5 w-3.5 shrink-0 text-steel-200" aria-hidden="true" />
-              <span>{settings.email}</span>
-            </a>
-          ) : null}
-
+      <div className="container-page flex items-center justify-between gap-2 sm:gap-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {/* Left: Contact telephone numbers from admin site settings */}
+        <div className="flex items-center gap-2.5 sm:gap-6 font-medium whitespace-nowrap shrink-0">
           {settings.main_phone ? (
             <a
               href={telHref(settings.main_phone)}
-              className="inline-flex items-center gap-1.5 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+              className="inline-flex items-center gap-1 sm:gap-1.5 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white shrink-0"
               aria-label={`Call main telephone ${settings.main_phone}`}
             >
-              <Phone className="h-3.5 w-3.5 shrink-0 text-steel-200" aria-hidden="true" />
+              <Phone className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 text-steel-200" aria-hidden="true" />
               <span>{settings.main_phone}</span>
             </a>
           ) : null}
@@ -69,10 +52,10 @@ export default function TopContactBar({ settings }: TopContactBarProps) {
           {settings.secondary_phone ? (
             <a
               href={telHref(settings.secondary_phone)}
-              className="hidden sm:inline-flex items-center gap-1.5 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+              className="inline-flex items-center gap-1 sm:gap-1.5 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white shrink-0"
               aria-label={`Call secondary telephone ${settings.secondary_phone}`}
             >
-              <Phone className="h-3.5 w-3.5 shrink-0 text-steel-200" aria-hidden="true" />
+              <Phone className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 text-steel-200" aria-hidden="true" />
               <span>{settings.secondary_phone}</span>
             </a>
           ) : null}
@@ -80,7 +63,7 @@ export default function TopContactBar({ settings }: TopContactBarProps) {
 
         {/* Right: Configured social media icons */}
         {socials.length > 0 ? (
-          <div className="flex items-center gap-3 ml-auto sm:ml-0" aria-label="Social media">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto" aria-label="Social media">
             {socials.map(({ href, label, Icon }) => (
               <a
                 key={label}
@@ -88,9 +71,9 @@ export default function TopContactBar({ settings }: TopContactBarProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={label}
-                className="text-steel-200 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white p-0.5"
+                className="text-steel-200 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white p-0.5 shrink-0"
               >
-                <Icon className="h-3.5 w-3.5" />
+                <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               </a>
             ))}
           </div>
