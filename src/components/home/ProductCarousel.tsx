@@ -39,7 +39,7 @@ export default function ProductCarousel({ children, label }: { children: React.R
   const duration = sequenceLength * MARQUEE_SECONDS_PER_CARD;
 
   // Two identical sequences back-to-back; only the very first copy of each product is exposed to
-  // assistive tech and keyboard users — every clone is aria-hidden and inert.
+  // assistive tech — duplicate clones are aria-hidden so screen readers do not repeat them.
   const trackItems: { key: string; node: React.ReactNode; isClone: boolean }[] = [];
   for (let half = 0; half < 2; half++) {
     for (let r = 0; r < repeats; r++) {
@@ -76,7 +76,7 @@ export default function ProductCarousel({ children, label }: { children: React.R
         style={{ "--marquee-duration": `${duration}s` } as React.CSSProperties}
       >
         {trackItems.map(({ key, node, isClone }) => (
-          <li key={key} className="product-marquee__item" aria-hidden={isClone || undefined} inert={isClone || undefined}>
+          <li key={key} className="product-marquee__item" aria-hidden={isClone || undefined}>
             {node}
           </li>
         ))}

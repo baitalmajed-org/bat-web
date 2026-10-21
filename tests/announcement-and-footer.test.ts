@@ -109,14 +109,14 @@ const mockSettings: SiteSettings = {
 };
 
 describe("Twinplast-Style Top Contact & Social Bar (TopContactBar)", () => {
-  it("1. renders contact details on the left (email, main telephone, secondary telephone)", () => {
+  it("1. renders contact telephone numbers on the left and omits email", () => {
     const html = renderToStaticMarkup(
       React.createElement(TopContactBar, { settings: mockSettings })
     );
 
-    // Email link
-    expect(html).toContain('href="mailto:info@bammetaluae.com"');
-    expect(html).toContain("info@bammetaluae.com");
+    // Email link is omitted
+    expect(html).not.toContain('href="mailto:info@bammetaluae.com"');
+    expect(html).not.toContain("info@bammetaluae.com");
 
     // Main phone link
     expect(html).toContain('href="tel:+971547167455"');
@@ -127,7 +127,7 @@ describe("Twinplast-Style Top Contact & Social Bar (TopContactBar)", () => {
     expect(html).toContain("00971 55 754 5936");
   });
 
-  it("2. renders configured social media icons on the right with accessible labels", () => {
+  it("2. renders configured social media icons on the right with accessible labels and omits LinkedIn", () => {
     const html = renderToStaticMarkup(
       React.createElement(TopContactBar, { settings: mockSettings })
     );
@@ -140,8 +140,8 @@ describe("Twinplast-Style Top Contact & Social Bar (TopContactBar)", () => {
     expect(html).toContain('href="https://x.com/bammetal"');
     expect(html).toContain('aria-label="Visit Bait Al Majed Metal Works on YouTube"');
     expect(html).toContain('href="https://youtube.com/@bammetal"');
-    expect(html).toContain('aria-label="Visit Bait Al Majed Metal Works on LinkedIn"');
-    expect(html).toContain('href="https://linkedin.com/company/bammetal"');
+    expect(html).not.toContain('aria-label="Visit Bait Al Majed Metal Works on LinkedIn"');
+    expect(html).not.toContain('href="https://linkedin.com/company/bammetal"');
 
     // External links open in new tab with safe rel
     expect(html).toContain('target="_blank"');
@@ -168,6 +168,39 @@ describe("Twinplast-Style Top Contact & Social Bar (TopContactBar)", () => {
     expect(html).toContain('aria-label="Visit Bait Al Majed Metal Works on Instagram"');
   });
 
+  it("3b. only renders YouTube icon when admin has added an actual channel link and omits bare roots", () => {
+    // Bare root domain: should be omitted
+    const bareSettings: SiteSettings = {
+      ...mockSettings,
+      youtube_url: "https://www.youtube.com/",
+    };
+    const htmlBare = renderToStaticMarkup(
+      React.createElement(TopContactBar, { settings: bareSettings })
+    );
+    expect(htmlBare).not.toContain("YouTube");
+
+    // Empty or null: should be omitted
+    const nullSettings: SiteSettings = {
+      ...mockSettings,
+      youtube_url: null,
+    };
+    const htmlNull = renderToStaticMarkup(
+      React.createElement(TopContactBar, { settings: nullSettings })
+    );
+    expect(htmlNull).not.toContain("YouTube");
+
+    // Configured admin channel: should be rendered
+    const channelSettings: SiteSettings = {
+      ...mockSettings,
+      youtube_url: "https://youtube.com/@bammetal",
+    };
+    const htmlChannel = renderToStaticMarkup(
+      React.createElement(TopContactBar, { settings: channelSettings })
+    );
+    expect(htmlChannel).toContain('aria-label="Visit Bait Al Majed Metal Works on YouTube"');
+    expect(htmlChannel).toContain('href="https://youtube.com/@bammetal"');
+  });
+
   it("4. does not contain centered announcement message, 'Learn more', or close (×) button", () => {
     const html = renderToStaticMarkup(
       React.createElement(TopContactBar, { settings: mockSettings })
@@ -178,15 +211,16 @@ describe("Twinplast-Style Top Contact & Social Bar (TopContactBar)", () => {
     expect(html).not.toContain("<button");
   });
 
-  it("5. applies responsive classes: secondary phone hides on extra-small mobile, flex wraps without overflow", () => {
+  it("5. applies responsive classes: displays contact telephone numbers aligned on a single row", () => {
     const html = renderToStaticMarkup(
       React.createElement(TopContactBar, { settings: mockSettings })
     );
 
-    // Secondary phone is hidden on narrow mobile screens
-    expect(html).toContain("hidden sm:inline-flex");
-    // Container uses responsive flex-wrap
-    expect(html).toContain("flex-wrap");
+    // Both telephone numbers are rendered
+    expect(html).toContain("+971 54 716 7455");
+    expect(html).toContain("00971 55 754 5936");
+    // Container uses single-row flex alignment
+    expect(html).toContain("justify-between");
     expect(html).toContain("container-page");
   });
 
@@ -224,7 +258,7 @@ describe("Twinplast-Style Top Contact & Social Bar (TopContactBar)", () => {
     );
 
     expect(html).toContain("<aside");
-    expect(html).toContain("info@bammetaluae.com");
+    expect(html).toContain("+971 54 716 7455");
   });
 });
 
@@ -257,7 +291,7 @@ describe("Footer Redesign & Responsiveness", () => {
     expect(html).toContain('href="/services/steel-fabrication"');
   });
 
-  it("8. renders social media icons in footer only for configured platforms with accessible labels", () => {
+  it("8. renders social media icons in footer only for configured platforms with accessible labels and omits LinkedIn", () => {
     const htmlAll = renderToStaticMarkup(
       React.createElement(Footer, {
         settings: mockSettings,
@@ -269,7 +303,13 @@ describe("Footer Redesign & Responsiveness", () => {
     expect(htmlAll).toContain('aria-label="Visit Bait Al Majed Metal Works on Instagram"');
     expect(htmlAll).toContain('aria-label="Visit Bait Al Majed Metal Works on X (Twitter)"');
     expect(htmlAll).toContain('aria-label="Visit Bait Al Majed Metal Works on YouTube"');
-    expect(htmlAll).toContain('aria-label="Visit Bait Al Majed Metal Works on LinkedIn"');
+    expect(htmlAll).not.toContain('aria-label="Visit Bait Al Majed Metal Works on LinkedIn"');
+
+    // Credit link: Crafted by Ekodrix
+    expect(htmlAll).toContain("Crafted by");
+    expect(htmlAll).toContain('href="https://www.ekodrix.com/"');
+    expect(htmlAll).toContain("Ekodrix");
+    expect(htmlAll).not.toContain("Steel fabrication &amp; metal works &middot; Ajman, UAE");
   });
 
   it("9. provides accessible mobile accordion buttons with aria-expanded and aria-controls", () => {
