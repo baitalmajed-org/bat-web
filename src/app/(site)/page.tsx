@@ -14,6 +14,21 @@ import { resolveHeroSection, sortHomepageSections } from "@/lib/homepage-section
 
 export const revalidate = 3600;
 
+function SectionHeading({ id, text }: { id: string; text: string | null | undefined }) {
+  if (!text) return null;
+  const words = text.trim().split(/\s+/);
+  const lead = words.length > 1 ? `${words.slice(0, -1).join(" ")} ` : "";
+  const accent = words.length > 1 ? words[words.length - 1] : text;
+
+  return (
+    <h2 id={id} className="section-heading text-3xl sm:text-4xl">
+      {lead ? <span>{lead}</span> : null}
+      <span className="section-heading__highlight">{accent}</span>
+      <span className="section-heading__bar" aria-hidden="true" />
+    </h2>
+  );
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings();
   return buildMetadata({
@@ -32,7 +47,7 @@ export default async function HomePage() {
   ]);
 
   const hero = resolveHeroSection(sections);
-  const homeServices = services.filter((s) => s.show_on_home).slice(0, 6);
+  const homeServices = services.filter((s) => s.show_on_home);
   const products = sections.featured_products;
   const servicesSection = sections.services;
 
@@ -55,7 +70,7 @@ export default async function HomePage() {
           <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div className="max-w-2xl">
               {products.eyebrow ? <p className="eyebrow mb-3">{products.eyebrow}</p> : null}
-              <h2 id="products-heading" className="text-3xl sm:text-4xl">{products.heading}</h2>
+              <SectionHeading id="products-heading" text={products.heading} />
               {products.body ? <p className="mt-3 text-steel-600">{products.body}</p> : null}
             </div>
             <Link href={products.primary_cta_href ?? "/products"} className="btn-outline self-start sm:self-auto">
@@ -82,7 +97,7 @@ export default async function HomePage() {
             <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
               <div className="max-w-2xl">
                 {servicesSection.eyebrow ? <p className="eyebrow mb-3">{servicesSection.eyebrow}</p> : null}
-                <h2 id="services-heading" className="text-3xl sm:text-4xl">{servicesSection.heading}</h2>
+                <SectionHeading id="services-heading" text={servicesSection.heading} />
                 {servicesSection.body ? <p className="mt-3 text-steel-600">{servicesSection.body}</p> : null}
               </div>
               <Link href={servicesSection.primary_cta_href ?? "/services"} className="btn-outline self-start sm:self-auto">
