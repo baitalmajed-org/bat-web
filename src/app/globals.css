@@ -93,44 +93,12 @@
   z-index: -1;
 }
 
-.section-heading__bar {
-  position: relative;
-  display: block;
-  margin-top: 0.65rem;
-  height: 0.25rem;
-  width: 5.5rem;
-  border-radius: 9999px;
-  background-color: rgba(121, 26, 48, 0.16);
-  overflow: hidden;
-}
-
-.section-heading__bar::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 2.25rem;
-  border-radius: 9999px;
-  background: linear-gradient(90deg, #791A30, #c9385a, #791A30);
-  animation: headingBarSlide 2.6s ease-in-out infinite;
-}
-
 @keyframes headingShimmer {
   0%, 100% {
     background-position: 0% 50%;
   }
   50% {
     background-position: 100% 50%;
-  }
-}
-
-@keyframes headingBarSlide {
-  0%, 100% {
-    transform: translateX(-15%);
-  }
-  50% {
-    transform: translateX(160%);
   }
 }
 

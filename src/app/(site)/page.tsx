@@ -24,7 +24,6 @@ function SectionHeading({ id, text }: { id: string; text: string | null | undefi
     <h2 id={id} className="section-heading text-3xl sm:text-4xl">
       {lead ? <span>{lead}</span> : null}
       <span className="section-heading__highlight">{accent}</span>
-      <span className="section-heading__bar" aria-hidden="true" />
     </h2>
   );
 }
