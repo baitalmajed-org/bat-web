@@ -10,7 +10,7 @@ import ProductCarousel from "@/components/home/ProductCarousel";
 import ProductCard from "@/components/products/ProductCard";
 import type { HomepageSection } from "@/types/db";
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getAboutPage();
@@ -32,6 +32,7 @@ const defaultCtaSection: HomepageSection = {
   primary_cta_label: "WhatsApp Now",
   primary_cta_href: null,
   secondary_cta_label: "Contact Us",
+  
   secondary_cta_href: "/contact",
   items: [],
   is_visible: true,
@@ -63,6 +64,11 @@ export default async function AboutPage() {
   ]);
   const c = page?.content ?? DEFAULT_ABOUT;
   const ctaSection = sections.contact_cta || defaultCtaSection;
+
+  const missionText = c.mission?.trim() ?? "";
+  const visionText = c.vision?.trim() ?? "";
+  const hasMission = Boolean(missionText);
+  const hasVision = Boolean(visionText);
 
   let products = featuredProducts;
   if (products.length === 0) {
@@ -103,10 +109,10 @@ export default async function AboutPage() {
           </div>
         </div>
 
-        {/* Mission & Vision: 1 row on desktop (left & right), 2 rows on mobile */}
-        {c.mission || c.vision ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-            {c.mission ? (
+        {/* Mission & Vision: Only displayed when data exists in backend */}
+        {hasMission || hasVision ? (
+          <div className={`grid gap-6 pt-2 ${hasMission && hasVision ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
+            {hasMission ? (
               <section
                 aria-labelledby="about-mission"
                 className="relative flex flex-col justify-between overflow-hidden rounded-lg border border-steel-200 bg-white p-7 shadow-xs transition-shadow hover:shadow-md"
@@ -122,12 +128,12 @@ export default async function AboutPage() {
                       <h2 id="about-mission" className="text-xl sm:text-2xl font-bold text-steel-900">Our Mission</h2>
                     </div>
                   </div>
-                  <p className="whitespace-pre-line text-base text-steel-700 leading-relaxed">{c.mission}</p>
+                  <p className="whitespace-pre-line text-base text-steel-700 leading-relaxed">{missionText}</p>
                 </div>
               </section>
             ) : null}
 
-            {c.vision ? (
+            {hasVision ? (
               <section
                 aria-labelledby="about-vision"
                 className="relative flex flex-col justify-between overflow-hidden rounded-lg border border-steel-200 bg-white p-7 shadow-xs transition-shadow hover:shadow-md"
@@ -143,7 +149,7 @@ export default async function AboutPage() {
                       <h2 id="about-vision" className="text-xl sm:text-2xl font-bold text-steel-900">Our Vision</h2>
                     </div>
                   </div>
-                  <p className="whitespace-pre-line text-base text-steel-700 leading-relaxed">{c.vision}</p>
+                  <p className="whitespace-pre-line text-base text-steel-700 leading-relaxed">{visionText}</p>
                 </div>
               </section>
             ) : null}

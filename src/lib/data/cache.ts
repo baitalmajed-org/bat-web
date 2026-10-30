@@ -24,6 +24,21 @@ export async function cachedRead<T>(
 
 /** Call after any admin mutation that changes public content. */
 export function revalidatePublic() {
-  for (const tag of CACHE_TAGS) revalidateTag(tag);
-  revalidatePath("/", "layout");
+  for (const tag of CACHE_TAGS) {
+    try {
+      revalidateTag(tag);
+    } catch (e) {
+      console.warn(`[cache] Failed to revalidate tag ${tag}:`, e);
+    }
+  }
+  try {
+    revalidatePath("/", "layout");
+    revalidatePath("/about");
+    revalidatePath("/contact");
+    revalidatePath("/products");
+    revalidatePath("/services");
+    revalidatePath("/blog");
+  } catch (e) {
+    console.warn("[cache] Failed to revalidate paths:", e);
+  }
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { assertAdmin } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { aboutSchema, fieldErrors, homepageSectionSchema, settingsSchema } from "@/lib/validation/schemas";
@@ -201,9 +202,15 @@ export async function saveAbout(_prev: FormState, fd: FormData): Promise<FormSta
         return { error: e ? dbMessage(e) : null };
       },
     });
-    if (!result.ok) { revalidatePublic(); return fail(`Text saved, but the image failed: ${result.error}`); }
+    if (!result.ok) {
+      revalidatePublic();
+      revalidatePath("/about");
+      return fail(`Text saved, but the image failed: ${result.error}`);
+    }
   }
   revalidatePublic();
+  revalidatePath("/about");
+  revalidatePath("/admin/pages");
   return done("About page saved.");
 }
 
