@@ -303,22 +303,22 @@ describe("Centralized Toast Notification System", () => {
       });
     });
 
-    it("resolves inquiry status and notification retries", () => {
+    it("resolves inquiry status and blog actions", () => {
       expect(parseUrlToast("/admin/inquiries/inq-1", { saved: "1" })).toEqual({
         type: "success",
         message: "Changes saved.",
       });
-      expect(parseUrlToast("/admin/inquiries/inq-1", { retry: "ok" })).toEqual({
+      expect(parseUrlToast("/admin/blogs", { saved: "1" })).toEqual({
         type: "success",
-        message: "Emails sent.",
+        message: "Blog post saved.",
       });
-      expect(parseUrlToast("/admin/inquiries/inq-1", { retry: "failed" })).toEqual({
-        type: "error",
-        message: "Sending failed again. Check the Brevo setup and try later.",
+      expect(parseUrlToast("/admin/blogs", { created: "1" })).toEqual({
+        type: "success",
+        message: "Blog post created.",
       });
-      expect(parseUrlToast("/admin/inquiries/inq-1", { retry: "nothing" })).toEqual({
-        type: "info",
-        message: "Both emails were already delivered.",
+      expect(parseUrlToast("/admin/blogs", { deleted: "1" })).toEqual({
+        type: "success",
+        message: "Blog post deleted.",
       });
     });
 

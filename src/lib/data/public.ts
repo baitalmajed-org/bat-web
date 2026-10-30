@@ -1,7 +1,7 @@
 import "server-only";
 import { COMPANY } from "@/lib/config/site";
 import { createPublicClient } from "@/lib/supabase/public";
-import type { AboutContent, Category, HomepageSection, PageRow, Product, ProductImage, Service, SiteSettings } from "@/types/db";
+import type { AboutContent, Blog, Category, HomepageSection, PageRow, Product, ProductImage, Service, SiteSettings } from "@/types/db";
 import { cachedRead } from "./cache";
 
 export const PAGE_SIZE = 12;
@@ -213,15 +213,51 @@ export const getAboutPage = () =>
     null,
   );
 
-export async function getSitemapSlugs(): Promise<{ products: { slug: string; updated_at: string }[]; services: { slug: string; updated_at: string }[] }> {
+export async function getSitemapSlugs(): Promise<{ products: { slug: string; updated_at: string }[]; services: { slug: string; updated_at: string }[]; blogs: { slug: string; updated_at: string }[] }> {
   try {
     const supabase = createPublicClient();
-    const [p, s] = await Promise.all([
+    const [p, s, b] = await Promise.all([
       supabase.from("products").select("slug,updated_at").eq("is_published", true),
       supabase.from("services").select("slug,updated_at").eq("is_published", true),
+      supabase.from("blogs").select("slug,updated_at").eq("is_published", true),
     ]);
-    return { products: p.data ?? [], services: s.data ?? [] };
+    return { products: p.data ?? [], services: s.data ?? [], blogs: b.data ?? [] };
   } catch {
-    return { products: [], services: [] };
+    return { products: [], services: [], blogs: [] };
   }
 }
+
+export const listPublicBlogs = () =>
+  cachedRead<Blog[]>(
+    ["public-blogs"],
+    ["blogs"],
+    async () => {
+      const { data, error } = await createPublicClient()
+        .from("blogs")
+        .select("*")
+        .eq("is_published", true)
+        .order("published_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as Blog[];
+    },
+    [],
+    300,
+  );
+
+export const getPublicBlogBySlug = (slug: string) =>
+  cachedRead<Blog | null>(
+    [`blog-${slug}`],
+    ["blogs"],
+    async () => {
+      const { data, error } = await createPublicClient()
+        .from("blogs")
+        .select("*")
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return (data as Blog | null) ?? null;
+    },
+    null,
+    600,
+  );

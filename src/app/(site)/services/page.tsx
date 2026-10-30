@@ -1,12 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowRight, MessageCircle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { getServices, getSettings } from "@/lib/data/public";
 import { whatsappHref } from "@/lib/config/site";
 import { buildMetadata } from "@/lib/seo/metadata";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import CloudImage from "@/components/ui/CloudImage";
 import ServiceIcon from "@/components/ui/ServiceIcon";
+import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 
 export const revalidate = 3600;
 
@@ -44,7 +45,7 @@ export default async function ServicesPage() {
                   <div className="mt-auto flex flex-wrap items-center gap-4 pt-3 text-sm font-semibold">
                     <Link href={`/services/${s.slug}`} className="inline-flex items-center gap-1 text-brand hover:underline">Details <ArrowRight className="h-4 w-4" aria-hidden /></Link>
                     <Link href={`/services/${s.slug}#enquire`} className="text-steel-700 hover:text-brand">Enquire</Link>
-                    <a href={whatsappHref(settings.whatsapp_number, `Hello, I would like to enquire about: ${s.title}`)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-steel-700 hover:text-brand"><MessageCircle className="h-4 w-4" aria-hidden /> WhatsApp</a>
+                    <a href={whatsappHref(settings.whatsapp_number, `Hello, I would like to enquire about: ${s.title}`)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-steel-700 hover:text-brand"><WhatsAppIcon className="h-4 w-4" /> WhatsApp</a>
                   </div>
                 </div>
               </li>

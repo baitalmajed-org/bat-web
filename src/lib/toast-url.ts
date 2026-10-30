@@ -18,7 +18,6 @@ const NOTIFICATION_PARAM_KEYS = [
   "imageDeleted",
   "imageRemoved",
   "logoReset",
-  "retry",
   "imageError",
   "error",
   "n",
@@ -46,6 +45,7 @@ export function parseUrlToast(
       if (pathname.includes("/admin/products")) return { type: "error", message: "The product could not be deleted." };
       if (pathname.includes("/admin/services")) return { type: "error", message: "The service could not be deleted." };
       if (pathname.includes("/admin/categories")) return { type: "error", message: "The category could not be deleted." };
+      if (pathname.includes("/admin/blogs")) return { type: "error", message: "The blog post could not be deleted." };
       return { type: "error", message: "The item could not be deleted." };
     }
     if (error === "status") return { type: "error", message: "Invalid status." };
@@ -90,6 +90,7 @@ export function parseUrlToast(
     if (pathname.includes("/admin/products")) return { type: "success", message: "Product deleted." };
     if (pathname.includes("/admin/services")) return { type: "success", message: "Service deleted." };
     if (pathname.includes("/admin/categories")) return { type: "success", message: "Category deleted." };
+    if (pathname.includes("/admin/blogs")) return { type: "success", message: "Blog post deleted." };
     if (pathname.includes("/admin/media")) return { type: "success", message: "Image deleted." };
     return { type: "success", message: "Item deleted." };
   }
@@ -99,6 +100,7 @@ export function parseUrlToast(
     if (pathname.includes("/admin/products")) return { type: "success", message: "Product created. You can now add images." };
     if (pathname.includes("/admin/services")) return { type: "success", message: "Service created." };
     if (pathname.includes("/admin/categories")) return { type: "success", message: "Category created." };
+    if (pathname.includes("/admin/blogs")) return { type: "success", message: "Blog post created." };
     return { type: "success", message: "Created successfully." };
   }
 
@@ -110,6 +112,7 @@ export function parseUrlToast(
   // Saved / updated feedback
   if (get("saved") === "1") {
     if (pathname.includes("/admin/inquiries")) return { type: "success", message: "Changes saved." };
+    if (pathname.includes("/admin/blogs")) return { type: "success", message: "Blog post saved." };
     return { type: "success", message: "Changes saved." };
   }
 
@@ -125,10 +128,12 @@ export function parseUrlToast(
   const published = get("published");
   if (published === "1") {
     if (pathname.includes("/admin/services")) return { type: "success", message: "Service published." };
+    if (pathname.includes("/admin/blogs")) return { type: "success", message: "Blog published." };
     return { type: "success", message: "Product published." };
   }
   if (published === "0") {
     if (pathname.includes("/admin/services")) return { type: "info", message: "Service unpublished." };
+    if (pathname.includes("/admin/blogs")) return { type: "info", message: "Blog unpublished." };
     return { type: "info", message: "Product unpublished." };
   }
 
@@ -138,12 +143,6 @@ export function parseUrlToast(
   if (get("primary") === "1") return { type: "success", message: "Main image updated." };
   if (get("altSaved") === "1") return { type: "success", message: "Image alt text saved." };
   if (get("logoReset") === "1") return { type: "success", message: "Reverted to official bundled logo." };
-
-  // Inquiry retry feedback
-  const retry = get("retry");
-  if (retry === "ok") return { type: "success", message: "Emails sent." };
-  if (retry === "failed") return { type: "error", message: "Sending failed again. Check the Brevo setup and try later." };
-  if (retry === "nothing") return { type: "info", message: "Both emails were already delivered." };
 
   return null;
 }

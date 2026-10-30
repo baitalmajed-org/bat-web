@@ -1,6 +1,7 @@
 export type ImagePurpose =
   | "product"
   | "service"
+  | "blog"
   | "about"
   | "homepage_hero"
   | "homepage"
@@ -25,6 +26,7 @@ export interface ImageLimitSpec {
  * Application limits:
  * - Product images: max 5 MB
  * - Service & About images: max 5 MB
+ * - Blog images: max 5 MB
  * - Homepage hero images: max 8 MB
  * - Homepage other section images: max 5 MB
  * - Logos and icons: max 2 MB
@@ -43,6 +45,13 @@ export const IMAGE_LIMITS: Record<ImagePurpose, ImageLimitSpec> = {
     maxBytes: 5 * 1024 * 1024,
     maxMB: 5,
     label: "Service photo",
+    recommendedTypes: "JPEG, PNG or WebP",
+    note: "High-resolution photos will be automatically optimized and responsive on delivery.",
+  },
+  blog: {
+    maxBytes: 5 * 1024 * 1024,
+    maxMB: 5,
+    label: "Blog feature photo",
     recommendedTypes: "JPEG, PNG or WebP",
     note: "High-resolution photos will be automatically optimized and responsive on delivery.",
   },

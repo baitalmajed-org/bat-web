@@ -1,7 +1,7 @@
 import "server-only";
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 
-export const CACHE_TAGS = ["settings", "homepage", "catalog", "services", "pages"] as const;
+export const CACHE_TAGS = ["settings", "homepage", "catalog", "services", "pages", "blogs"] as const;
 
 /**
  * Cache a read. Errors are NOT cached: unstable_cache re-throws, and we return the

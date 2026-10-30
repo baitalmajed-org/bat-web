@@ -1,4 +1,5 @@
-import { MessageCircle, Phone } from "lucide-react";
+import { Phone } from "lucide-react";
+import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import { telHref, whatsappHref } from "@/lib/config/site";
 
 type Props = {
@@ -14,7 +15,7 @@ export default function ContactButtons({ phone, whatsapp, waMessage, tone = "lig
   return (
     <div className="flex flex-wrap gap-3">
       <a href={whatsappHref(whatsapp, waMessage)} target="_blank" rel="noopener noreferrer" className="btn-primary">
-        <MessageCircle className="h-4 w-4" aria-hidden /> {waLabel}
+        <WhatsAppIcon className="h-4 w-4" /> {waLabel}
       </a>
       <a href={telHref(phone)} className={tone === "light" ? "btn-light" : "btn-outline"}>
         <Phone className="h-4 w-4" aria-hidden /> {callLabel}

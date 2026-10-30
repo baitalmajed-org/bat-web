@@ -152,6 +152,7 @@ export const homepageSectionSchema = z.object({
   heading: optionalText(200),
   body: optionalText(1000),
   image_alt: optionalText(200),
+  mobile_image_alt: optionalText(200),
   primary_cta_label: optionalText(40),
   primary_cta_href: ctaHref,
   secondary_cta_label: optionalText(40),
@@ -173,7 +174,18 @@ export const aboutSchema = z.object({
 
 export const noteSchema = z.object({ note: z.string().trim().min(1, "Write a note first").max(4000) });
 
-export const inquiryStatusSchema = z.enum(["new", "in_progress", "replied", "closed"]);
+export const inquiryStatusSchema = z.enum(["new", "read", "marked", "in_progress", "replied", "closed"]);
+
+export const blogSchema = z.object({
+  title: z.string().trim().min(2, "Title is too short").max(200, "Title is too long"),
+  slug: z.string().trim().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Slug must use lowercase letters, numbers, and hyphens"),
+  excerpt: z.string().trim().max(500, "Excerpt is too long").default(""),
+  content: z.string().trim().min(10, "Content must be at least 10 characters"),
+  image_alt: z.string().trim().max(200).default(""),
+  is_published: z.boolean().default(false),
+  seo_title: z.string().trim().max(200).default(""),
+  seo_description: z.string().trim().max(300).default(""),
+});
 
 import { IMAGE_LIMITS, ALLOWED_IMAGE_TYPES, type ImagePurpose, getImageLimit } from "@/lib/cloudinary/limits";
 export { IMAGE_LIMITS, ALLOWED_IMAGE_TYPES, type ImagePurpose, getImageLimit };

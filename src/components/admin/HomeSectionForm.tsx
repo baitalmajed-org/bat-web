@@ -31,8 +31,17 @@ export default function HomeSectionForm({
   onChange,
 }: HomeSectionFormProps) {
   const purpose = section.key === "hero" ? "homepage_hero" : "homepage";
-  const { state, handleSubmit, isSubmitting, isUploading, progress, clientError, setClientError } =
-    useDirectImageUpload(purpose, saveHomeSection.bind(null, section.key));
+  const {
+    state,
+    handleSubmit,
+    isSubmitting,
+    isUploading,
+    uploadingField,
+    progress,
+    clientError,
+    fieldErrors,
+    setClientError,
+  } = useDirectImageUpload(purpose, saveHomeSection.bind(null, section.key));
   const { toast } = useToast();
 
   useEffect(() => {
@@ -169,7 +178,7 @@ export default function HomeSectionForm({
             id={id("items")}
             name="items"
             rows={4}
-            defaultValue={section.items
+            defaultValue={(section.items || [])
               .map((i) => (i.text ? `${i.title} | ${i.text}` : i.title))
               .join("\n")}
             className="field"
@@ -178,27 +187,76 @@ export default function HomeSectionForm({
       ) : null}
 
       {HAS_IMAGE.has(section.key) ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <ImageUploadField
-            id={id("image")}
-            name="image"
-            purpose={purpose}
-            label={section.image_public_id ? "Replace background image" : "Background image"}
-            error={clientError}
-            isUploading={isUploading}
-            progress={progress}
-            onError={setClientError}
-            hint={section.key === "hero" ? "Homepage hero banner image up to 8 MB." : "Homepage section image up to 5 MB."}
-          />
-          <Field id={id("alt")} label="Image alt text" error={e.image_alt}>
-            <input
-              id={id("alt")}
-              name="image_alt"
-              defaultValue={section.image_alt ?? ""}
-              placeholder="Describe background image"
-              className={cls("image_alt")}
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <ImageUploadField
+              id={id("image")}
+              name="image"
+              purpose={purpose}
+              currentPublicId={section.image_public_id}
+              label={
+                section.key === "hero"
+                  ? section.image_public_id
+                    ? "Replace desktop background image"
+                    : "Desktop background image"
+                  : section.image_public_id
+                    ? "Replace background image"
+                    : "Background image"
+              }
+              error={fieldErrors.image ?? (uploadingField === "image" ? clientError : null)}
+              isUploading={uploadingField === "image"}
+              progress={uploadingField === "image" ? progress : null}
+              onError={setClientError}
+              hint={
+                section.key === "hero"
+                  ? "Desktop hero banner image up to 8 MB (also used on mobile if no separate mobile banner is set)."
+                  : "Homepage section image up to 5 MB."
+              }
             />
-          </Field>
+            <Field id={id("alt")} label="Image alt text" error={e.image_alt}>
+              <input
+                id={id("alt")}
+                name="image_alt"
+                defaultValue={section.image_alt ?? ""}
+                placeholder="Describe background image"
+                className={cls("image_alt")}
+              />
+            </Field>
+          </div>
+
+          {section.key === "hero" ? (
+            <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-steel-200/70">
+              <ImageUploadField
+                id={id("mobile_image")}
+                name="mobile_image"
+                purpose={purpose}
+                currentPublicId={section.mobile_image_public_id}
+                label={
+                  section.mobile_image_public_id
+                    ? "Replace mobile background image"
+                    : "Mobile background image (optional)"
+                }
+                error={fieldErrors.mobile_image ?? (uploadingField === "mobile_image" ? clientError : null)}
+                isUploading={uploadingField === "mobile_image"}
+                progress={uploadingField === "mobile_image" ? progress : null}
+                onError={setClientError}
+                hint="Displayed on mobile screens (< 768px). If empty, the desktop banner image is displayed on mobile."
+              />
+              <Field
+                id={id("mobile_alt")}
+                label="Mobile image alt text"
+                error={e.mobile_image_alt}
+              >
+                <input
+                  id={id("mobile_alt")}
+                  name="mobile_image_alt"
+                  defaultValue={section.mobile_image_alt ?? ""}
+                  placeholder="Describe mobile background image"
+                  className={cls("mobile_image_alt")}
+                />
+              </Field>
+            </div>
+          ) : null}
         </div>
       ) : null}
 

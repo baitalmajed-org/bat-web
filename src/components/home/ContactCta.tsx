@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MessageCircle } from "lucide-react";
 import CloudImage from "@/components/ui/CloudImage";
+import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import { telHref, whatsappHref } from "@/lib/config/site";
 import type { HomepageSection, SiteSettings } from "@/types/db";
 
@@ -96,7 +96,7 @@ export default function ContactCta({ section, settings }: { section: HomepageSec
               rel="noopener noreferrer"
               className="btn-primary"
             >
-              <MessageCircle className="h-4 w-4" aria-hidden="true" />
+              <WhatsAppIcon className="h-4 w-4" />
               <span>{section.primary_cta_label || "WhatsApp Now"}</span>
             </a>
 
@@ -119,5 +119,3 @@ export default function ContactCta({ section, settings }: { section: HomepageSec
     </section>
   );
 }
-
-

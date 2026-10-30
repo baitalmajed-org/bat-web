@@ -6,10 +6,7 @@ import { assertAdmin } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 import { inquiryStatusSchema, noteSchema } from "@/lib/validation/schemas";
 import { dbMessage, done, fail, str } from "@/lib/admin-form";
-import { sendInquiryNotifications, INQUIRY_TYPE_LABELS } from "@/lib/brevo/notify";
-import { getSettings } from "@/lib/data/public";
 import type { FormState } from "@/lib/validation/state";
-import type { Inquiry } from "@/types/db";
 
 export async function updateInquiry(formData: FormData): Promise<void> {
   await assertAdmin();
@@ -24,7 +21,26 @@ export async function updateInquiry(formData: FormData): Promise<void> {
   }).eq("id", id);
   if (error) console.error("[admin] inquiry update failed", error.message);
   revalidatePath("/admin/inquiries");
+  revalidatePath(`/admin/inquiries/${id}`);
   redirect(`/admin/inquiries/${id}?saved=1`);
+}
+
+export async function markInquiryStatus(formData: FormData): Promise<void> {
+  await assertAdmin();
+  const id = str(formData, "id");
+  const targetStatus = str(formData, "status") || "read";
+  const parsed = inquiryStatusSchema.safeParse(targetStatus);
+  if (!parsed.success) redirect(`/admin/inquiries`);
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("inquiries").update({ status: parsed.data }).eq("id", id);
+  if (error) console.error("[admin] inquiry mark status failed", error.message);
+
+  revalidatePath("/admin/inquiries");
+  revalidatePath(`/admin/inquiries/${id}`);
+
+  const back = str(formData, "back") || "/admin/inquiries";
+  redirect(back);
 }
 
 export async function addInquiryNote(inquiryId: string, _prev: FormState, fd: FormData): Promise<FormState> {
@@ -36,34 +52,4 @@ export async function addInquiryNote(inquiryId: string, _prev: FormState, fd: Fo
   if (error) return fail(dbMessage(error));
   revalidatePath(`/admin/inquiries/${inquiryId}`);
   return done("Note added.");
-}
-
-/** Retries only channels that are not already 'sent', so a delivered email is never re-sent. */
-export async function retryNotifications(formData: FormData): Promise<void> {
-  await assertAdmin();
-  const id = str(formData, "id");
-  const supabase = await createClient();
-  const { data } = await supabase.from("inquiries").select("*").eq("id", id).maybeSingle();
-  const inquiry = data as Inquiry | null;
-  if (!inquiry) redirect("/admin/inquiries");
-
-  const channels: ("admin" | "customer")[] = [];
-  if (inquiry.admin_email_status !== "sent") channels.push("admin");
-  if (inquiry.customer_email_status !== "sent") channels.push("customer");
-  if (channels.length === 0) redirect(`/admin/inquiries/${id}?retry=nothing`);
-
-  const settings = await getSettings();
-  const outcome = await sendInquiryNotifications(
-    supabase,
-    { id: inquiry.id, reference: inquiry.reference },
-    {
-      reference: inquiry.reference, name: inquiry.customer_name, email: inquiry.customer_email, phone: inquiry.customer_phone,
-      company: inquiry.company_name, typeLabel: INQUIRY_TYPE_LABELS[inquiry.inquiry_type] ?? inquiry.inquiry_type,
-      relatedLabel: inquiry.related_label, subject: inquiry.subject, message: inquiry.message, createdAt: inquiry.created_at,
-    },
-    { channels, companyName: settings.company_name, responseCommitment: settings.response_time_commitment },
-  );
-  const allOk = channels.every((c) => outcome[c]);
-  revalidatePath(`/admin/inquiries/${id}`);
-  redirect(`/admin/inquiries/${id}?retry=${allOk ? "ok" : "failed"}`);
 }

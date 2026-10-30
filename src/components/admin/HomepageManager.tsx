@@ -80,20 +80,44 @@ export default function HomepageManager({
                   </td>
                   <td className="p-3 text-steel-700">{s.sort_order}</td>
                   <td className="p-3">
-                    {s.image_public_id ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-12 h-9 relative border border-steel-200 overflow-hidden">
-                          <Thumb publicId={s.image_public_id} alt={s.image_alt ?? ""} />
-                        </div>
-                        <ConfirmDialog
-                          compact
-                          triggerLabel="Remove"
-                          confirmLabel="Remove"
-                          title="Remove this image?"
-                          description="The section falls back to the steel pattern background. The file is deleted from Cloudinary only if nothing else uses it."
-                          action={removeHomeImage}
-                          fields={{ key: s.key }}
-                        />
+                    {s.image_public_id || s.mobile_image_public_id ? (
+                      <div className="flex flex-col gap-2">
+                        {s.image_public_id ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-12 h-9 relative border border-steel-200 overflow-hidden shrink-0">
+                              <Thumb publicId={s.image_public_id} alt={s.image_alt ?? ""} />
+                            </div>
+                            {s.key === "hero" ? (
+                              <span className="text-[11px] font-medium text-steel-500">Desktop</span>
+                            ) : null}
+                            <ConfirmDialog
+                              compact
+                              triggerLabel="Remove"
+                              confirmLabel="Remove"
+                              title="Remove this image?"
+                              description="The section falls back to the steel pattern background. The file is deleted from Cloudinary only if nothing else uses it."
+                              action={removeHomeImage}
+                              fields={{ key: s.key, target: "desktop" }}
+                            />
+                          </div>
+                        ) : null}
+                        {s.mobile_image_public_id ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-12 h-9 relative border border-steel-200 overflow-hidden shrink-0">
+                              <Thumb publicId={s.mobile_image_public_id} alt={s.mobile_image_alt ?? ""} />
+                            </div>
+                            <span className="text-[11px] font-medium text-steel-500">Mobile</span>
+                            <ConfirmDialog
+                              compact
+                              triggerLabel="Remove"
+                              confirmLabel="Remove"
+                              title="Remove mobile hero image?"
+                              description="Mobile screens will fall back to the desktop hero banner image. The file is deleted from Cloudinary only if nothing else uses it."
+                              action={removeHomeImage}
+                              fields={{ key: s.key, target: "mobile" }}
+                            />
+                          </div>
+                        ) : null}
                       </div>
                     ) : (
                       <span className="text-xs text-steel-400">Pattern bg</span>
@@ -166,7 +190,7 @@ export default function HomepageManager({
           Services on homepage
         </h2>
         <p className="mb-4 text-sm text-steel-600">
-          Up to six published services are displayed in the homepage grid.
+          Published services ticked below are displayed in the homepage carousel.
         </p>
         <form action={saveHomeServices} className="space-y-4">
           <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 max-h-60 overflow-y-auto p-2 border border-steel-200 bg-steel-50/50">

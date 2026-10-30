@@ -14,11 +14,13 @@ describe("supabase migrations", () => {
       "0003_rls.sql",
       "0004_announcement_and_social.sql",
       "0005_top_contact_bar_visibility.sql",
+      "0006_hero_mobile_image.sql",
+      "0007_inquiries_and_blogs.sql",
     ]));
 
   const tables = [...sql.matchAll(/create table public\.(\w+)/g)].map((m) => m[1]!);
   it("define the required tables", () => {
-    for (const t of ["site_settings", "homepage_sections", "categories", "products", "product_images", "services", "media_assets", "inquiries", "inquiry_notes"]) expect(tables).toContain(t);
+    for (const t of ["site_settings", "homepage_sections", "categories", "products", "product_images", "services", "media_assets", "inquiries", "inquiry_notes", "blogs"]) expect(tables).toContain(t);
   });
   it("enable RLS on every table", () => {
     for (const t of tables) expect(sql, `RLS missing for ${t}`).toMatch(new RegExp(`alter table public\\.${t} enable row level security`));

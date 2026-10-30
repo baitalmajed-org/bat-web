@@ -13,7 +13,7 @@ export function extractImageInput(
   directAsset: DirectUploadedAssetPayload | null;
   file: File | null;
 } {
-  const directStr = str(fd, `${name}_direct_asset`) || str(fd, "direct_asset");
+  const directStr = str(fd, `${name}_direct_asset`) || (name === "image" ? str(fd, "direct_asset") : "");
   let directAsset: DirectUploadedAssetPayload | null = null;
   if (directStr) {
     try {

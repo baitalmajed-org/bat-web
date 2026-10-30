@@ -47,7 +47,7 @@ insert into public.homepage_sections (key, eyebrow, heading, body, primary_cta_l
    '[{"title":"Strong Fabrication"},{"title":"Custom Solutions"},{"title":"Built for Industry"}]', 1),
   ('featured_products','Our products','Industrial Steel Products','Steel products for material handling, construction and industrial applications.','View all products','/products',null,null,'[]',2),
   ('services','Our services','Steel Fabrication Solutions','Welding, fabrication and manufacturing solutions for industrial, commercial and construction applications.','All services','/services',null,null,'[]',3),
-  ('about','About us','Bait Al Majed Metal Works','A steel fabrication and metal works company based in Ajman, United Arab Emirates, handling all kinds of welding and fabrication work.','Learn more about us','/about',null,null,'[]',4),
+  ('about','About us','Bait Al Majed Metal Works','A steel fabrication and metal works company based in Ajman, United Arab Emirates, handling all kinds of welding and fabrication work.','About Bait Al Majed','/about',null,null,'[]',4),
   ('trust','Why choose us',null,null,null,null,null,null,
    '[{"title":"Wide Range","text":"of steel products"},{"title":"Custom Work","text":"made to your requirement"},{"title":"Quality Focused","text":"fabrication"},{"title":"Ajman Based","text":"United Arab Emirates"}]', 5),
   ('contact_cta','Get in touch','Need a Custom Steel Solution?','Contact us for product enquiries, custom fabrication requirements or bulk orders.','WhatsApp Now','whatsapp','Contact us','/contact','[]', 6)

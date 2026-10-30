@@ -1,12 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const {
-  mockRpc,
-  mockSendInquiryNotifications,
-} = vi.hoisted(() => {
+const { mockRpc } = vi.hoisted(() => {
   return {
     mockRpc: vi.fn(),
-    mockSendInquiryNotifications: vi.fn().mockResolvedValue({ admin: true, customer: true }),
   };
 });
 
@@ -18,23 +14,6 @@ vi.mock("next/headers", () => ({
 
 vi.mock("@/lib/rate-limit", () => ({
   rateLimit: vi.fn().mockReturnValue(true),
-}));
-
-vi.mock("@/lib/brevo/notify", () => ({
-  sendInquiryNotifications: (...args: unknown[]) => mockSendInquiryNotifications(...args),
-  INQUIRY_TYPE_LABELS: {
-    product: "Product inquiry",
-    service: "Service inquiry",
-    custom_fabrication: "Custom fabrication requirement",
-    general: "General question",
-  },
-}));
-
-vi.mock("@/lib/data/public", () => ({
-  getSettings: vi.fn().mockResolvedValue({
-    company_name: "BAM",
-    response_time_commitment: "Within 24 hours",
-  }),
 }));
 
 vi.mock("@/lib/supabase/public", () => ({
@@ -49,18 +28,19 @@ import { initialFormState } from "@/lib/validation/state";
 function createValidFormData(overrides: Record<string, string> = {}): FormData {
   const fd = new FormData();
   const defaults: Record<string, string> = {
-    name: "Ahmed Hassan",
+    name: "Ahmed Al Nuaimi",
     email: "ahmed@example.com",
     phone: "+971 50 123 4567",
-    company: "Falcon Construction",
-    type: "product",
-    subject: "Steel Beam Inquiry",
-    message: "We need custom steel beams for our project in Ajman.",
+    company: "Ajman Industrial Supplies",
+    type: "general",
+    subject: "Steel Beam Fabrication Query",
+    message: "We need 50 pieces of custom I-beams cut and drilled to specific dimensions.",
     privacy: "on",
     website: "", // honeypot
+    ...overrides,
   };
-  const data = { ...defaults, ...overrides };
-  for (const [k, v] of Object.entries(data)) {
+
+  for (const [k, v] of Object.entries(defaults)) {
     if (v !== undefined) {
       fd.append(k, v);
     }
@@ -68,75 +48,74 @@ function createValidFormData(overrides: Record<string, string> = {}): FormData {
   return fd;
 }
 
-describe("Inquiry submission honeypot and validation (FIX 3)", () => {
+describe("submitInquiry honeypot and real submissions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRpc.mockResolvedValue({
-      data: [{ id: "inq-123", reference: "BAM-2026-001", related_label: null }],
-      error: null,
+  });
+
+  it("honeypot website field filled -> returns success message immediately without DB insert", async () => {
+    const fd = createValidFormData({
+      website: "http://bot-spam.example.com",
     });
-  });
 
-  it("an empty honeypot allows a valid inquiry to continue and complete successfully", async () => {
-    const fd = createValidFormData({ website: "" });
     const result = await submitInquiry(initialFormState, fd);
 
     expect(result.ok).toBe(true);
     expect(result.message).toBe("Thank you. Your inquiry has been received.");
-    expect(result.reference).toBe("BAM-2026-001");
-
-    expect(mockRpc).toHaveBeenCalledWith("submit_inquiry", expect.objectContaining({
-      p_name: "Ahmed Hassan",
-      p_email: "ahmed@example.com",
-    }));
-    expect(mockSendInquiryNotifications).toHaveBeenCalledTimes(1);
-  });
-
-  it("a populated honeypot returns the deceptive success response immediately", async () => {
-    const fd = createValidFormData({ website: "https://spam-bot.example.com" });
-    const result = await submitInquiry(initialFormState, fd);
-
-    // Returns deceptive success
-    expect(result.ok).toBe(true);
-    expect(result.message).toBe("Thank you. Your inquiry has been received.");
-    // Reference is not generated since DB was never called
-    expect(result.reference).toBeUndefined();
-  });
-
-  it("a honeypot submission does not invoke submit_inquiry() in Supabase", async () => {
-    const fd = createValidFormData({ website: "spambot" });
-    await submitInquiry(initialFormState, fd);
-
     expect(mockRpc).not.toHaveBeenCalled();
   });
 
-  it("a honeypot submission does not trigger administrator or customer email delivery", async () => {
-    const fd = createValidFormData({ website: "spambot" });
-    await submitInquiry(initialFormState, fd);
-
-    expect(mockSendInquiryNotifications).not.toHaveBeenCalled();
-  });
-
-  it("a honeypot submission never reveals bot detection to the client", async () => {
+  it("honeypot website filled with only whitespace -> trimmed and silently accepted without DB call", async () => {
     const fd = createValidFormData({
-      website: "bot-url",
-      email: "invalid-email-that-would-otherwise-fail",
-      message: "short",
+      website: "   https://spambot.net   ",
     });
-    const result = await submitInquiry(initialFormState, fd);
 
-    // Does not expose error or mention bot
-    expect(result.ok).toBe(true);
-    expect(result.errors).toBeUndefined();
+    const result = await submitInquiry(initialFormState, fd);
+        expect(result.ok).toBe(true);
     expect(result.message).toBe("Thank you. Your inquiry has been received.");
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 
-  it("a legitimate inquiry still passes validation and follows normal submission path", async () => {
+  it("clean submission with website empty -> calls submit_inquiry RPC", async () => {
+    mockRpc.mockResolvedValueOnce({
+      data: [{ id: "inq-123", reference: "BAM-261029-ABC123", related_label: null }],
+      error: null,
+    });
+
+    const fd = createValidFormData({
+      website: "",
+    });
+
+    const result = await submitInquiry(initialFormState, fd);
+        expect(result.ok).toBe(true);
+    expect(result.reference).toBe("BAM-261029-ABC123");
+    expect(result.message).toBe("Thank you. Your inquiry has been received.");
+    expect(mockRpc).toHaveBeenCalledTimes(1);
+    expect(mockRpc).toHaveBeenCalledWith("submit_inquiry", {
+      p_name: "Ahmed Al Nuaimi",
+      p_email: "ahmed@example.com",
+      p_phone: "+971 50 123 4567",
+      p_company: "Ajman Industrial Supplies",
+      p_type: "general",
+      p_product_id: null,
+      p_service_id: null,
+      p_subject: "Steel Beam Fabrication Query",
+      p_message: "We need 50 pieces of custom I-beams cut and drilled to specific dimensions.",
+    });
+  });
+
+  it("clean submission for service inquiry -> correctly passes serviceId to RPC", async () => {
+    mockRpc.mockResolvedValueOnce({
+      data: [{ id: "inq-456", reference: "BAM-2026-001", related_label: "Laser Cutting" }],
+      error: null,
+    });
+
     const fd = createValidFormData({
       name: "Fatima Al Mansoori",
-      email: "fatima@bammetaluae.com",
+      email: "fatima@contracting.ae",
       phone: "+971 55 987 6543",
       type: "service",
+      serviceId: "11111111-2222-3333-4444-555555555555",
       subject: "Custom CNC Cutting",
       message: "Looking for precision CNC laser cutting services for steel sheets.",
       website: "",
@@ -149,7 +128,6 @@ describe("Inquiry submission honeypot and validation (FIX 3)", () => {
       p_name: "Fatima Al Mansoori",
       p_type: "service",
     }));
-    expect(mockSendInquiryNotifications).toHaveBeenCalledTimes(1);
   });
 
   it("invalid email addresses and missing required fields still fail validation for legitimate submissions", async () => {

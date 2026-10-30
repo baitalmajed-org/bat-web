@@ -1,8 +1,9 @@
 /** Pure URL builders (safe for server and client). */
-export type ImagePreset = "hero" | "card" | "gallery" | "thumb" | "about" | "logo";
+export type ImagePreset = "hero" | "hero_mobile" | "card" | "gallery" | "thumb" | "about" | "logo";
 
 const PRESETS: Record<ImagePreset, { ar?: string; crop: string }> = {
   hero: { ar: "16:9", crop: "fill" },
+  hero_mobile: { crop: "limit" },
   card: { ar: "4:3", crop: "fill" },
   gallery: { ar: "4:3", crop: "limit" },
   thumb: { ar: "1:1", crop: "fill" },
@@ -34,4 +35,3 @@ export function cloudinaryUrl(publicId: string, width: number, preset: ImagePres
   if (p.ar && p.crop === "fill") parts.push(`ar_${p.ar}`, "g_auto");
   return `https://res.cloudinary.com/${cloud}/image/upload/${parts.join(",")}/${cleaned}`;
 }
-
