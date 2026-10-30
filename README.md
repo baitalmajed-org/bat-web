@@ -2,7 +2,7 @@
 
 Business website and secure admin panel for **Bait Al Majed Metal Works**, a steel fabrication and metal works company in Ajman, UAE.
 
-**Stack:** Next.js 15 (App Router) · TypeScript (strict) · Tailwind CSS 3 · Supabase (Postgres, Auth, RLS) · Cloudinary · Brevo · Vercel
+**Stack:** Next.js 15 (App Router) · TypeScript (strict) · Tailwind CSS 3 · Supabase (Postgres, Auth, RLS) · Cloudinary · Vercel
 
 This is an inquiry-generation site, not a shop: there is no cart, checkout or payment.
 
@@ -13,7 +13,7 @@ This is an inquiry-generation site, not a shop: there is no cart, checkout or pa
 | Area | What it does |
 |---|---|
 | Public site | `/`, `/about`, `/products`, `/products/[slug]`, `/services`, `/services/[slug]`, `/contact`. All content comes from Supabase and is edited in the admin panel. |
-| Inquiry system | Server-validated form, saved to Supabase with a reference like `BAM-261015-NMHRCF`, Brevo emails to the admin and the customer, retry of failed emails from the admin. |
+| Inquiry system | Server-validated form, saved to Supabase with a reference like `BAM-261015-NMHRCF`, with New and Marked-as-read tracking in the admin panel. |
 | Admin CMS | `/admin`: dashboard, products (with images, preview, publish), categories, services, inquiries (status, notes, follow-up, retry email), homepage sections, About page, media, site settings. |
 | Security | Supabase Auth + an `admin_users` allow-list + Row Level Security. Every admin page and server action re-checks authorization on the server. |
 | Media | Cloudinary upload with safe replace/cleanup workflow and reference counting. |
@@ -117,23 +117,6 @@ To verify: upload a product image, replace it, then check the Cloudinary Media L
 
 ---
 
-## 5. Brevo setup
-
-1. Create an account at <https://www.brevo.com>.
-2. **SMTP & API → API Keys**: create a key and set `BREVO_API_KEY`.
-3. **Senders, Domains & Dedicated IPs**: add and verify the sender address you will use (`BREVO_SENDER_EMAIL`). For reliable delivery, authenticate your domain (SPF/DKIM) as Brevo instructs. Emails from an unverified sender are rejected.
-4. Set `BREVO_SENDER_NAME` and `ADMIN_NOTIFICATION_EMAIL` (the inbox that receives new inquiries).
-5. Submit a test inquiry on `/contact`. You should receive the admin notification, and the customer address should receive the confirmation.
-
-Behavior:
-
-- The inquiry is **saved first**. A Brevo failure never fails the customer's submission.
-- Each channel (admin, customer) has its own status: `pending`, `sent` or `failed`. Retry from **Admin → Inquiries → (inquiry) → Retry failed emails**. Only channels that are not already `sent` are sent again, so delivered emails are never duplicated.
-- If the Brevo variables are missing the app still runs; the status is recorded as `failed` with "not configured" and the dashboard shows a warning.
-- Customer emails promise no response time unless you enter a statement in **Admin → Settings → Response-time statement**.
-
----
-
 ## 6. Deploying to Vercel
 
 1. Push the project to GitHub (do **not** commit `.env.local`; it is git-ignored).
@@ -164,7 +147,6 @@ Free-tier limits change, so check each provider's current pricing page rather th
 - **Vercel:** Dashboard → Usage (bandwidth, function invocations). Public pages are cached/ISR; content edits call `revalidateTag`, so no polling is used.
 - **Supabase:** Dashboard → Reports / Usage (database size, egress, auth users). Public queries select only needed columns and are cached; admin lists are paginated.
 - **Cloudinary:** Dashboard → Usage (storage, transformations, bandwidth). Uploads are downscaled and deduplicated; unused assets can be deleted from **Admin → Media**.
-- **Brevo:** Statistics → Transactional (daily send cap). Each inquiry sends two emails.
 
 ---
 
@@ -199,7 +181,7 @@ Free-tier limits change, so check each provider's current pricing page rather th
 - The three migrations and the seed were **executed on a local PostgreSQL 16** with a stand-in for Supabase's `auth` schema and roles. RLS behavior was tested as anonymous, signed-in non-admin and admin (see section 8 for what was confirmed).
 - The production build was run against a mock REST server with sample rows: all public routes return 200, unknown product/service slugs return a real 404, the sitemap lists published items, product pages emit canonical URL and structured data, the carousel arrows scroll, category filter and search change the URL, the inquiry form validates and submits.
 - Layouts were checked in headless Chromium at 320, 375, 414, 768, 1024 and 1440 px with no horizontal overflow; the mobile drawer opens, closes on navigation and on Escape.
-- Client bundles were scanned: no Brevo/Cloudinary secrets present.
+- Client bundles were scanned: no Cloudinary secrets present.
 
 **Not verified (needs your real credentials):**
 

@@ -1,29 +1,29 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { Category, Inquiry, InquiryNote, MediaAsset, Product, ProductImage, Service } from "@/types/db";
+import type { Blog, Category, Inquiry, InquiryNote, MediaAsset, Product, ProductImage, Service } from "@/types/db";
 
 export const ADMIN_PAGE_SIZE = 20;
 
 export async function getDashboardCounts() {
   const supabase = await createClient();
   const head = { count: "exact" as const, head: true };
-  const [published, drafts, services, fresh, progress, failed] = await Promise.all([
+  const [published, drafts, services, fresh, marked, blogs] = await Promise.all([
     supabase.from("products").select("id", head).eq("is_published", true),
     supabase.from("products").select("id", head).eq("is_published", false),
     supabase.from("services").select("id", head).eq("is_published", true),
     supabase.from("inquiries").select("id", head).eq("status", "new"),
-    supabase.from("inquiries").select("id", head).eq("status", "in_progress"),
-    supabase.from("inquiries").select("id", head).or("admin_email_status.eq.failed,customer_email_status.eq.failed"),
+    supabase.from("inquiries").select("id", head).in("status", ["read", "marked"]),
+    supabase.from("blogs").select("id", head).eq("is_published", true),
   ]);
-  const err = [published, drafts, services, fresh, progress, failed].find((r) => r.error);
+  const err = [published, drafts, services, fresh, marked, blogs].find((r) => r.error);
   if (err?.error) throw new Error(err.error.message);
   return {
     publishedProducts: published.count ?? 0,
     draftProducts: drafts.count ?? 0,
     publishedServices: services.count ?? 0,
     newInquiries: fresh.count ?? 0,
-    inProgressInquiries: progress.count ?? 0,
-    failedEmails: failed.count ?? 0,
+    markedInquiries: marked.count ?? 0,
+    publishedBlogs: blogs.count ?? 0,
   };
 }
 
@@ -71,19 +71,24 @@ export async function getAdminService(id: string): Promise<Service | null> {
   return (data as Service | null) ?? null;
 }
 
-export async function listInquiries(opts: { page: number; status?: string; type?: string; q?: string; failedOnly?: boolean }) {
+export async function listInquiries(opts: { page: number; status?: string; type?: string; q?: string }) {
   const supabase = await createClient();
   let query = supabase.from("inquiries")
-    .select("id,reference,customer_name,customer_email,inquiry_type,related_label,subject,status,admin_email_status,customer_email_status,created_at", { count: "exact" });
-  if (opts.status) query = query.eq("status", opts.status);
+    .select("id,reference,customer_name,customer_email,customer_phone,inquiry_type,related_label,subject,status,created_at", { count: "exact" });
+  if (opts.status === "new") {
+    query = query.eq("status", "new");
+  } else if (opts.status === "marked" || opts.status === "read") {
+    query = query.in("status", ["read", "marked"]);
+  } else if (opts.status) {
+    query = query.eq("status", opts.status);
+  }
   if (opts.type) query = query.eq("inquiry_type", opts.type);
-  if (opts.failedOnly) query = query.or("admin_email_status.eq.failed,customer_email_status.eq.failed");
   const term = (opts.q ?? "").replace(/[,()%*\\:"']/g, " ").trim();
   if (term) query = query.or(`reference.ilike.%${term}%,customer_name.ilike.%${term}%,customer_email.ilike.%${term}%,subject.ilike.%${term}%`);
   const from = (opts.page - 1) * ADMIN_PAGE_SIZE;
   const { data, count, error } = await query.order("created_at", { ascending: false }).range(from, from + ADMIN_PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
-  return { rows: (data ?? []) as Pick<Inquiry, "id" | "reference" | "customer_name" | "customer_email" | "inquiry_type" | "related_label" | "subject" | "status" | "admin_email_status" | "customer_email_status" | "created_at">[], total: count ?? 0 };
+  return { rows: (data ?? []) as Pick<Inquiry, "id" | "reference" | "customer_name" | "customer_email" | "customer_phone" | "inquiry_type" | "related_label" | "subject" | "status" | "created_at">[], total: count ?? 0 };
 }
 
 export async function getInquiry(id: string): Promise<{ inquiry: Inquiry; notes: InquiryNote[] } | null> {
@@ -95,6 +100,26 @@ export async function getInquiry(id: string): Promise<{ inquiry: Inquiry; notes:
   if (i.error) throw new Error(i.error.message);
   if (!i.data) return null;
   return { inquiry: i.data as Inquiry, notes: (n.data ?? []) as InquiryNote[] };
+}
+
+export async function listAdminBlogs(opts: { page: number; q?: string; status?: string }) {
+  const supabase = await createClient();
+  let query = supabase.from("blogs").select("*", { count: "exact" });
+  if (opts.status === "published") query = query.eq("is_published", true);
+  if (opts.status === "draft") query = query.eq("is_published", false);
+  const term = (opts.q ?? "").replace(/[,()%*\\:"']/g, " ").trim();
+  if (term) query = query.or(`title.ilike.%${term}%,slug.ilike.%${term}%`);
+  const from = (opts.page - 1) * ADMIN_PAGE_SIZE;
+  const { data, count, error } = await query.order("created_at", { ascending: false }).range(from, from + ADMIN_PAGE_SIZE - 1);
+  if (error) throw new Error(error.message);
+  return { rows: (data ?? []) as Blog[], total: count ?? 0 };
+}
+
+export async function getAdminBlog(id: string): Promise<Blog | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("blogs").select("*").eq("id", id).maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data as Blog | null) ?? null;
 }
 
 export async function listMedia(page: number) {

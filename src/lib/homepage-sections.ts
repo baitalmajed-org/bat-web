@@ -21,6 +21,8 @@ export const FALLBACK_HERO: HomepageSection = {
   body: "Welding, fabrication and customized metal solutions from Ajman, UAE.",
   image_public_id: null,
   image_alt: null,
+  mobile_image_public_id: null,
+  mobile_image_alt: null,
   primary_cta_label: "Enquire on WhatsApp",
   primary_cta_href: "whatsapp",
   secondary_cta_label: "Call Now",

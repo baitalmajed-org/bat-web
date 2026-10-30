@@ -5,8 +5,6 @@ import { createPublicClient } from "@/lib/supabase/public";
 import { inquirySchema, fieldErrors } from "@/lib/validation/schemas";
 import type { FormState } from "@/lib/validation/state";
 import { rateLimit } from "@/lib/rate-limit";
-import { sendInquiryNotifications, INQUIRY_TYPE_LABELS } from "@/lib/brevo/notify";
-import { getSettings } from "@/lib/data/public";
 
 const GENERIC_ERROR = "We could not send your inquiry right now. Please try again, or contact us by phone or WhatsApp.";
 
@@ -65,30 +63,6 @@ export async function submitInquiry(_prev: FormState, formData: FormData): Promi
 
     const row = (Array.isArray(data) ? data[0] : data) as { id: string; reference: string; related_label: string | null } | undefined;
     if (!row) return { ok: false, values, message: GENERIC_ERROR };
-
-    // The inquiry is safely stored. Email problems must never fail the customer's submission.
-    try {
-      const settings = await getSettings();
-      await sendInquiryNotifications(
-        supabase,
-        { id: row.id, reference: row.reference },
-        {
-          reference: row.reference,
-          name: input.name,
-          email: input.email,
-          phone: input.phone,
-          company: input.company || null,
-          typeLabel: INQUIRY_TYPE_LABELS[input.type] ?? input.type,
-          relatedLabel: row.related_label,
-          subject: input.subject,
-          message: input.message,
-          createdAt: new Date().toISOString(),
-        },
-        { channels: ["admin", "customer"], companyName: settings.company_name, responseCommitment: settings.response_time_commitment },
-      );
-    } catch (e) {
-      console.error("[inquiry] notification step failed", e instanceof Error ? e.message : e);
-    }
 
     return { ok: true, reference: row.reference, message: "Thank you. Your inquiry has been received." };
   } catch (e) {

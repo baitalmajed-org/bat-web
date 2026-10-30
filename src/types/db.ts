@@ -41,6 +41,8 @@ export type HomepageSection = {
   body: string | null;
   image_public_id: string | null;
   image_alt: string | null;
+  mobile_image_public_id?: string | null;
+  mobile_image_alt?: string | null;
   primary_cta_label: string | null;
   primary_cta_href: string | null;
   secondary_cta_label: string | null;
@@ -128,7 +130,30 @@ export type Service = {
   seo_description: string | null;
 };
 
-export type InquiryStatus = "new" | "in_progress" | "replied" | "closed";
+export type Blog = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
+  image_public_id: string | null;
+  image_alt: string | null;
+  is_published: boolean;
+  seo_title: string | null;
+  seo_description: string | null;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export const INQUIRY_TYPE_LABELS: Record<string, string> = {
+  product: "Product inquiry",
+  service: "Service inquiry",
+  custom_fabrication: "Custom fabrication requirement",
+  general: "General question",
+};
+
+export type InquiryStatus = "new" | "read" | "marked" | "in_progress" | "replied" | "closed";
 export type InquiryType = "product" | "service" | "custom_fabrication" | "general";
 export type EmailStatus = "pending" | "sent" | "failed" | "skipped";
 

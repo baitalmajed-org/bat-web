@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, startTransition, useActionState, useId } f
 import { type ImagePurpose, getImageLimit, formatFileSize } from "@/lib/cloudinary/limits";
 import { validateImageFile } from "@/lib/validation/schemas";
 import { uploadDirectToCloudinary } from "@/lib/cloudinary/direct-upload";
+import CloudImage from "@/components/ui/CloudImage";
 import type { FormState } from "@/lib/validation/state";
 import { initialFormState } from "@/lib/validation/state";
 
@@ -33,6 +34,7 @@ export function ImageUploadField({
   required = false,
   disabled = false,
   className = "",
+  currentPublicId,
   error: externalError,
   progress: externalProgress,
   isUploading: externalIsUploading,
@@ -153,6 +155,19 @@ export function ImageUploadField({
         </div>
       ) : null}
 
+      {/* Existing image indicator if currentPublicId is supplied and no new file selected */}
+      {currentPublicId && !selectedFile ? (
+        <div className="flex items-center gap-3 p-2 rounded bg-steel-50/80 border border-steel-200">
+          <div className="relative w-12 h-9 rounded overflow-hidden bg-steel-200 shrink-0 border border-steel-300">
+            <CloudImage publicId={currentPublicId} alt={label || "Current image"} preset="thumb" sizes="48px" />
+          </div>
+          <div className="min-w-0 flex-1 text-xs">
+            <span className="font-semibold text-steel-700">Current image active</span>
+            <p className="text-[11px] text-steel-500 truncate">Choose a file above to replace it.</p>
+          </div>
+        </div>
+      ) : null}
+
       {/* Selected file preview and upload progress */}
       {selectedFile && previewUrl ? (
         <div className="flex items-center gap-3 p-2.5 rounded bg-steel-50 border border-steel-200">
@@ -213,44 +228,60 @@ export function useDirectImageUpload(
 ) {
   const [state, formAction, isPending] = useActionState(serverAction, initialFormState);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [clientError, setClientError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
+
+  const setFieldError = (field: string, msg: string | null) => {
+    setFieldErrors((prev) => ({ ...prev, [field]: msg }));
+    if (msg) setClientError(msg);
+  };
 
   const handleSubmit = async (formData: FormData) => {
     setClientError(null);
-    const file = formData.get(fileFieldName) as File | null;
+    setFieldErrors({});
+    const fieldsToCheck = Array.from(new Set([fileFieldName, "mobile_image"]));
 
-    if (file && file.size > 0) {
-      // 1. Client-side validation
-      const validationError = validateImageFile(file, purpose);
-      if (validationError) {
-        setClientError(validationError);
-        return;
-      }
+    for (const fieldName of fieldsToCheck) {
+      const file = formData.get(fieldName) as File | null;
+      if (file && file.size > 0) {
+        // 1. Client-side validation
+        const validationError = validateImageFile(file, purpose);
+        if (validationError) {
+          setFieldError(fieldName, validationError);
+          return;
+        }
 
-      // 2. Direct upload to Cloudinary with live progress
-      setIsUploading(true);
-      setProgress(0);
-      try {
-        const asset = await uploadDirectToCloudinary({
-          file,
-          purpose,
-          onProgress: (percent) => setProgress(percent),
-        });
+        // 2. Direct upload to Cloudinary with live progress
+        setIsUploading(true);
+        setUploadingField(fieldName);
+        setProgress(0);
+        try {
+          const asset = await uploadDirectToCloudinary({
+            file,
+            purpose,
+            onProgress: (percent) => setProgress(percent),
+          });
 
-        // 3. Remove large binary file from formData so Vercel function stays far below 4.5 MB limit
-        formData.delete(fileFieldName);
-        formData.set(`${fileFieldName}_direct_asset`, JSON.stringify(asset));
-        formData.set("direct_asset", JSON.stringify(asset));
-      } catch (err) {
+          // 3. Remove large binary file from formData so Vercel function stays far below 4.5 MB limit
+          formData.delete(fieldName);
+          formData.set(`${fieldName}_direct_asset`, JSON.stringify(asset));
+          if (fieldName === fileFieldName) {
+            formData.set("direct_asset", JSON.stringify(asset));
+          }
+        } catch (err) {
+          setIsUploading(false);
+          setUploadingField(null);
+          setProgress(null);
+          const message = err instanceof Error ? err.message : "Image upload failed";
+          setFieldError(fieldName, message);
+          return;
+        }
         setIsUploading(false);
+        setUploadingField(null);
         setProgress(null);
-        const message = err instanceof Error ? err.message : "Image upload failed";
-        setClientError(message);
-        return;
       }
-      setIsUploading(false);
-      setProgress(null);
     }
 
     // 4. Submit form data to server action
@@ -264,8 +295,11 @@ export function useDirectImageUpload(
     handleSubmit,
     isSubmitting: isPending || isUploading,
     isUploading,
+    uploadingField,
     progress,
     clientError,
+    fieldErrors,
     setClientError,
+    setFieldError,
   };
 }

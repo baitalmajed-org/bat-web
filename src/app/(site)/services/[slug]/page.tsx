@@ -9,7 +9,6 @@ import {
   Factory,
   FileCheck2,
   MapPin,
-  MessageCircle,
   Phone,
   ShieldCheck,
 } from "lucide-react";
@@ -22,6 +21,7 @@ import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import CloudImage from "@/components/ui/CloudImage";
 import ServiceIcon from "@/components/ui/ServiceIcon";
 import SpecTable from "@/components/ui/SpecTable";
+import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import InquiryForm from "@/components/inquiry/InquiryForm";
 
 export const revalidate = 600;
@@ -108,7 +108,7 @@ export default async function ServicePage({ params }: { params: Params }) {
                 rel="noopener noreferrer"
                 className="btn-primary justify-center shadow-xs hover:shadow-sm"
               >
-                <MessageCircle className="h-4 w-4" aria-hidden />
+                <WhatsAppIcon className="h-4 w-4" />
                 Enquire on WhatsApp
               </a>
               <a
@@ -243,7 +243,7 @@ export default async function ServicePage({ params }: { params: Params }) {
                   rel="noopener noreferrer"
                   className="btn-primary w-full justify-center text-sm"
                 >
-                  <MessageCircle className="h-4 w-4" aria-hidden />
+                  <WhatsAppIcon className="h-4 w-4" />
                   WhatsApp Direct Inquiry
                 </a>
               </div>

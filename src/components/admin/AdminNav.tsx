@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Boxes, FileText, Home, Image as ImageIcon, Inbox, LayoutDashboard, Layers, Menu, Settings, Tags, X } from "lucide-react";
+import { Boxes, FileText, Home, Image as ImageIcon, Inbox, LayoutDashboard, Layers, Menu, Newspaper, Settings, Tags, X } from "lucide-react";
 
 const ITEMS = [
   { href: "/admin", label: "Dashboard", Icon: LayoutDashboard, exact: true },
   { href: "/admin/inquiries", label: "Inquiries", Icon: Inbox },
+  { href: "/admin/blogs", label: "Blogs", Icon: Newspaper },
   { href: "/admin/products", label: "Products", Icon: Boxes },
   { href: "/admin/categories", label: "Categories", Icon: Tags },
   { href: "/admin/services", label: "Services", Icon: Layers },

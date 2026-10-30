@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { MessageCircle } from "lucide-react";
 import { getProductBySlug, getRelatedProducts, getSettings } from "@/lib/data/public";
 import { cloudinaryUrl } from "@/lib/cloudinary/urls";
 import { whatsappHref } from "@/lib/config/site";
@@ -10,6 +9,7 @@ import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import ProductGallery from "@/components/products/ProductGallery";
 import ProductCard from "@/components/products/ProductCard";
 import SpecTable from "@/components/ui/SpecTable";
+import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import InquiryForm from "@/components/inquiry/InquiryForm";
 
 export const revalidate = 600;
@@ -54,7 +54,7 @@ export default async function ProductPage({ params }: { params: Params }) {
             {product.short_description ? <p className="mt-3 text-lg text-steel-700">{product.short_description}</p> : null}
             {product.is_sample ? <p className="mt-4 border-l-4 border-steel-400 bg-steel-50 p-3 text-sm text-steel-700">Sample listing: details have not been verified yet. Contact us to confirm availability and specifications.</p> : null}
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href={whatsappHref(settings.whatsapp_number, `Hello, I would like to enquire about: ${product.name}`)} target="_blank" rel="noopener noreferrer" className="btn-primary"><MessageCircle className="h-4 w-4" aria-hidden /> Enquire on WhatsApp</a>
+              <a href={whatsappHref(settings.whatsapp_number, `Hello, I would like to enquire about: ${product.name}`)} target="_blank" rel="noopener noreferrer" className="btn-primary"><WhatsAppIcon className="h-4 w-4" /> Enquire on WhatsApp</a>
               <a href="#enquire" className="btn-outline">Send an inquiry</a>
             </div>
             {product.description ? <div className="mt-8 whitespace-pre-line leading-relaxed text-steel-700">{product.description}</div> : null}

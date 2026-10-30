@@ -17,11 +17,11 @@ describe("security conventions", () => {
     for (const f of files) {
       const src = read(f);
       if (!/^["']use client["']/.test(src)) continue;
-      expect(src, f).not.toMatch(/BREVO_API_KEY|CLOUDINARY_API_SECRET|SERVICE_ROLE/);
+      expect(src, f).not.toMatch(/CLOUDINARY_API_SECRET|SERVICE_ROLE/);
     }
   });
   it("keeps secret-using modules server-only", () => {
-    for (const f of ["lib/brevo/client.ts", "lib/cloudinary/client.ts", "lib/supabase/server.ts"]) expect(read(path.join(root, f))).toContain('import "server-only"');
+    for (const f of ["lib/cloudinary/client.ts", "lib/supabase/server.ts"]) expect(read(path.join(root, f))).toContain('import "server-only"');
   });
   it("every admin server action checks authorization", () => {
     const actionsDir = path.join(root, "app/admin/actions");

@@ -5,8 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
-import { Menu, X, Phone, MessageCircle } from "lucide-react";
+import { Menu, X, Phone } from "lucide-react";
 import CloudImage from "@/components/ui/CloudImage";
+import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 
 type Props = {
   links: readonly { href: string; label: string }[];
@@ -186,7 +187,7 @@ export default function HeaderNav({
                   <Link
                     href="/"
                     onClick={close}
-                    className="relative block h-9 w-20 shrink-0"
+                    className="relative block h-11 w-24 shrink-0"
                     aria-label={`${companyName} home`}
                   >
                     {logoPublicId ? (
@@ -194,7 +195,7 @@ export default function HeaderNav({
                         publicId={logoPublicId}
                         alt={companyName}
                         preset="logo"
-                        sizes="90px"
+                        sizes="110px"
                         className="object-contain object-left"
                       />
                     ) : (
@@ -202,7 +203,7 @@ export default function HeaderNav({
                         src="/brand/logo-on-white.png"
                         alt={companyName}
                         fill
-                        sizes="90px"
+                        sizes="110px"
                         className="object-contain object-left"
                       />
                     )}
@@ -265,7 +266,7 @@ export default function HeaderNav({
                       rel="noopener noreferrer"
                       className="btn-primary w-full justify-center shadow-sm"
                     >
-                      <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      <WhatsAppIcon className="h-4 w-4 shrink-0" />
                       <span>WhatsApp</span>
                     </a>
                     <a

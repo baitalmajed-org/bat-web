@@ -1,5 +1,7 @@
 const TONES: Record<string, string> = {
-  new: "bg-brand-100 text-brand-800",
+  new: "bg-blue-100 text-blue-900 border border-blue-300 font-bold uppercase tracking-wider text-[11px]",
+  read: "bg-steel-200 text-steel-700",
+  marked: "bg-steel-200 text-steel-700",
   in_progress: "bg-amber-100 text-amber-900",
   replied: "bg-green-100 text-green-800",
   closed: "bg-steel-200 text-steel-700",
@@ -14,5 +16,10 @@ const TONES: Record<string, string> = {
 };
 
 export default function StatusBadge({ status, label }: { status: string; label?: string }) {
-  return <span className={`inline-block px-2 py-0.5 text-xs font-semibold ${TONES[status] ?? "bg-steel-100 text-steel-700"}`}>{label ?? status.replace("_", " ")}</span>;
+  const displayLabel = label ?? (status === "read" ? "Marked as read" : status === "marked" ? "Marked" : status.replace("_", " "));
+  return (
+    <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-sm ${TONES[status] ?? "bg-steel-100 text-steel-700"}`}>
+      {displayLabel}
+    </span>
+  );
 }

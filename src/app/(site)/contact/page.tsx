@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { getSettings } from "@/lib/data/public";
 import { telHref, whatsappHref } from "@/lib/config/site";
 import { buildMetadata } from "@/lib/seo/metadata";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
+import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import InquiryForm from "@/components/inquiry/InquiryForm";
 
 export const revalidate = 3600;
@@ -34,7 +35,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
         <aside className="space-y-4 lg:col-span-2" aria-label="Contact details">
           <ul className="card divide-y divide-steel-200">
             <li className="flex gap-3 p-4"><Phone className="mt-0.5 h-5 w-5 text-brand" aria-hidden /><div><p className="text-xs uppercase tracking-wider text-steel-500">Telephone</p><a href={telHref(settings.main_phone)} className="font-semibold hover:text-brand">{settings.main_phone}</a>{settings.secondary_phone ? <><br /><a href={telHref(settings.secondary_phone)} className="font-semibold hover:text-brand">{settings.secondary_phone}</a></> : null}</div></li>
-            <li className="flex gap-3 p-4"><MessageCircle className="mt-0.5 h-5 w-5 text-brand" aria-hidden /><div><p className="text-xs uppercase tracking-wider text-steel-500">WhatsApp</p><a href={whatsappHref(settings.whatsapp_number)} target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-brand">Chat on WhatsApp</a></div></li>
+            <li className="flex gap-3 p-4"><WhatsAppIcon className="mt-0.5 h-5 w-5 text-brand" /><div><p className="text-xs uppercase tracking-wider text-steel-500">WhatsApp</p><a href={whatsappHref(settings.whatsapp_number)} target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-brand">Chat on WhatsApp</a></div></li>
             <li className="flex gap-3 p-4"><Mail className="mt-0.5 h-5 w-5 text-brand" aria-hidden /><div><p className="text-xs uppercase tracking-wider text-steel-500">Email</p><a href={`mailto:${settings.email}`} className="break-all font-semibold hover:text-brand">{settings.email}</a></div></li>
             {settings.address_text ? <li className="flex gap-3 p-4"><MapPin className="mt-0.5 h-5 w-5 text-brand" aria-hidden /><div><p className="text-xs uppercase tracking-wider text-steel-500">Location</p><p className="font-semibold">{settings.address_text}</p>{settings.google_maps_url ? <a href={settings.google_maps_url} target="_blank" rel="noopener noreferrer" className="text-sm text-brand hover:underline">Open in Google Maps</a> : null}</div></li> : null}
             {settings.business_hours ? <li className="flex gap-3 p-4"><Clock className="mt-0.5 h-5 w-5 text-brand" aria-hidden /><div><p className="text-xs uppercase tracking-wider text-steel-500">Business hours</p><p className="whitespace-pre-line font-semibold">{settings.business_hours}</p></div></li> : null}

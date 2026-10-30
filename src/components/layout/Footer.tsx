@@ -160,7 +160,7 @@ export default function Footer({ settings, services }: Props) {
             className={`${openSections.links ? "block pt-2" : "hidden"} md:!block md:!pt-0`}
           >
             <ul className="space-y-2 text-sm">
-              {NAV_LINKS.map((l) => (
+              {[...NAV_LINKS.filter(l => l.href !== '/contact'), { href: '/blog', label: 'Blog' }, ...NAV_LINKS.filter(l => l.href === '/contact')].map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="hover:text-white transition-colors">
                     {l.label}

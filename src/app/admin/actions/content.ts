@@ -28,46 +28,116 @@ export async function saveHomeSection(key: SectionKey, _prev: FormState, fd: For
   await assertAdmin();
   if (!SECTION_KEYS.includes(key)) return fail("Unknown section.");
   const parsed = homepageSectionSchema.safeParse({
-    eyebrow: str(fd, "eyebrow"), heading: str(fd, "heading"), body: str(fd, "body"), image_alt: str(fd, "image_alt"),
-    primary_cta_label: str(fd, "primary_cta_label"), primary_cta_href: str(fd, "primary_cta_href"),
-    secondary_cta_label: str(fd, "secondary_cta_label"), secondary_cta_href: str(fd, "secondary_cta_href"),
-    is_visible: bool(fd, "is_visible"), sort_order: str(fd, "sort_order") || 0,
+    eyebrow: str(fd, "eyebrow"),
+    heading: str(fd, "heading"),
+    body: str(fd, "body"),
+    image_alt: str(fd, "image_alt"),
+    mobile_image_alt: str(fd, "mobile_image_alt"),
+    primary_cta_label: str(fd, "primary_cta_label"),
+    primary_cta_href: str(fd, "primary_cta_href"),
+    secondary_cta_label: str(fd, "secondary_cta_label"),
+    secondary_cta_href: str(fd, "secondary_cta_href"),
+    is_visible: bool(fd, "is_visible"),
+    sort_order: str(fd, "sort_order") || 0,
   });
   if (!parsed.success) return fail("Please correct the highlighted fields.", fieldErrors(parsed.error));
 
   const supabase = await createClient();
-  const payload: Record<string, unknown> = { ...parsed.data };
+  const { mobile_image_alt, ...baseData } = parsed.data;
+  const payload: Record<string, unknown> = {
+    ...baseData,
+    ...(key === "hero" ? { mobile_image_alt } : {}),
+  };
   if (fd.has("items")) payload.items = parseItems(str(fd, "items"));
 
-  const { data: current } = await supabase.from("homepage_sections").select("image_public_id").eq("key", key).maybeSingle();
-  const { error } = await supabase.from("homepage_sections").update(payload).eq("key", key);
+  const { data: current } = await supabase
+    .from("homepage_sections")
+    .select("*")
+    .eq("key", key)
+    .maybeSingle();
+
+  let { error } = await supabase.from("homepage_sections").update(payload).eq("key", key);
+  if (error && error.message?.includes("mobile_image_alt")) {
+    const fallbackPayload = { ...payload };
+    delete fallbackPayload.mobile_image_alt;
+    const retry = await supabase.from("homepage_sections").update(fallbackPayload).eq("key", key);
+    if (!retry.error) {
+      error = null;
+    }
+  }
   if (error) return fail(dbMessage(error));
 
   const purpose = key === "hero" ? "homepage_hero" : "homepage";
+  const warnings: string[] = [];
+
+  // 1. Desktop / standard background image
   const { directAsset, file: image } = extractImageInput(fd, "image");
   if (directAsset || image) {
     const result = await saveImage({
-      supabase, file: image, directAsset, purpose, alt: parsed.data.image_alt, oldPublicId: current?.image_public_id ?? null,
+      supabase,
+      file: image,
+      directAsset,
+      purpose,
+      alt: parsed.data.image_alt,
+      oldPublicId: (current as { image_public_id?: string | null } | null)?.image_public_id ?? null,
       applyUpdate: async (a) => {
-        const { error: e } = await supabase.from("homepage_sections").update({ image_public_id: a.publicId }).eq("key", key);
+        const { error: e } = await supabase
+          .from("homepage_sections")
+          .update({ image_public_id: a.publicId })
+          .eq("key", key);
         return { error: e ? dbMessage(e) : null };
       },
     });
-    if (!result.ok) { revalidatePublic(); return fail(`Text saved, but the image failed: ${result.error}`); }
-    revalidatePublic();
-    return done("Section saved." + (result.cleanupWarning ? ` ${result.cleanupWarning}` : ""));
+    if (!result.ok) {
+      revalidatePublic();
+      return fail(`Text saved, but the desktop image failed: ${result.error}`);
+    }
+    if (result.cleanupWarning) warnings.push(result.cleanupWarning);
   }
+
+  // 2. Separate mobile background image (hero section)
+  if (key === "hero") {
+    const { directAsset: mobileDirectAsset, file: mobileImage } = extractImageInput(fd, "mobile_image");
+    if (mobileDirectAsset || mobileImage) {
+      const mobileResult = await saveImage({
+        supabase,
+        file: mobileImage,
+        directAsset: mobileDirectAsset,
+        purpose,
+        alt: mobile_image_alt ?? parsed.data.image_alt,
+        oldPublicId: (current as { mobile_image_public_id?: string | null } | null)?.mobile_image_public_id ?? null,
+        applyUpdate: async (a) => {
+          const { error: e } = await supabase
+            .from("homepage_sections")
+            .update({ mobile_image_public_id: a.publicId })
+            .eq("key", key);
+          return { error: e ? dbMessage(e) : null };
+        },
+      });
+      if (!mobileResult.ok) {
+        revalidatePublic();
+        return fail(`Text saved, but the mobile image failed: ${mobileResult.error}`);
+      }
+      if (mobileResult.cleanupWarning) warnings.push(mobileResult.cleanupWarning);
+    }
+  }
+
   revalidatePublic();
-  return done("Section saved.");
+  return done("Section saved." + (warnings.length ? ` ${warnings.join(" ")}` : ""));
 }
 
 export async function removeHomeImage(formData: FormData): Promise<void> {
   await assertAdmin();
   const key = str(formData, "key");
+  const target = str(formData, "target") === "mobile" ? "mobile" : "desktop";
+  const column = target === "mobile" ? "mobile_image_public_id" : "image_public_id";
   const supabase = await createClient();
-  const { data } = await supabase.from("homepage_sections").select("image_public_id").eq("key", key).maybeSingle();
-  const { error } = await supabase.from("homepage_sections").update({ image_public_id: null }).eq("key", key);
-  if (!error && data?.image_public_id) await releaseAsset(supabase, data.image_public_id);
+  const { data } = await supabase.from("homepage_sections").select("*").eq("key", key).maybeSingle();
+  const oldPublicId = (data as Record<string, string | null> | null)?.[column] ?? null;
+  const updatePayload: Record<string, unknown> = { [column]: null };
+  if (target === "mobile") updatePayload.mobile_image_alt = null;
+  const { error } = await supabase.from("homepage_sections").update(updatePayload).eq("key", key);
+  if (!error && oldPublicId) await releaseAsset(supabase, oldPublicId);
   revalidatePublic();
   if (error) redirect("/admin/homepage?error=image_remove");
   redirect("/admin/homepage?imageRemoved=1");
@@ -175,7 +245,9 @@ export async function saveSettings(_prev: FormState, fd: FormData): Promise<Form
   const { data: current } = await supabase.from("site_settings").select("logo_public_id").eq("id", 1).maybeSingle();
   let { error } = await supabase.from("site_settings").upsert({ id: 1, ...parsed.data }, { onConflict: "id" });
   if (error && (error.message?.includes("top_bar_enabled") || error.message?.includes("top_contact_bar_enabled"))) {
-    const { top_bar_enabled: _t1, top_contact_bar_enabled: _t2, ...fallbackData } = parsed.data as Record<string, unknown>;
+    const fallbackData = { ...(parsed.data as Record<string, unknown>) };
+    delete fallbackData.top_bar_enabled;
+    delete fallbackData.top_contact_bar_enabled;
     const retry = await supabase.from("site_settings").upsert({ id: 1, ...fallbackData }, { onConflict: "id" });
     if (!retry.error) {
       error = null;
@@ -206,7 +278,7 @@ export async function resetLogo(): Promise<void> {
   const { error } = await supabase.from("site_settings").update({ logo_public_id: null }).eq("id", 1);
   if (!error && data?.logo_public_id) await releaseAsset(supabase, data.logo_public_id);
   revalidatePublic();
-  if (error) redirect("/admin/settings?error=logo_reset");
+  if (error) redirect("/admin/homepage?error=logo_reset");
   redirect("/admin/settings?logoReset=1");
 }
 
