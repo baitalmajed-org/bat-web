@@ -104,8 +104,8 @@ describe("Homepage Services Section — Image-Based Cards & Fallback", () => {
     // Contains link to service detail page
     expect(html).toContain('href="/services/material-handling-equipment"');
     expect(html).toContain("Learn more");
-    // Aspect ratio container for consistent card image area
-    expect(html).toContain("aspect-[16/10]");
+    // Aspect ratio container for consistent card image area matching ProductCard
+    expect(html).toContain("aspect-[4/3]");
     expect(html).toContain("object-cover");
   });
 
@@ -118,15 +118,14 @@ describe("Homepage Services Section — Image-Based Cards & Fallback", () => {
     expect(html).toContain("Learn more");
     // Uses industrial steel pattern background and fallback icon container
     expect(html).toContain("steel-pattern");
-    expect(html).toContain("aspect-[16/10]");
+    expect(html).toContain("aspect-[4/3]");
   });
 
-  it("applies responsive grid classes for desktop (3-col), tablet (2-col), and mobile (1-col)", () => {
+  it("renders services within the homepage product marquee carousel", () => {
     const html = renderToStaticMarkup(React.createElement(ServicesGrid, { services: sampleServices }));
     
-    expect(html).toContain("grid-cols-1");
-    expect(html).toContain("sm:grid-cols-2");
-    expect(html).toContain("lg:grid-cols-3");
+    expect(html).toContain("product-marquee");
+    expect(html).toContain("Our services");
   });
 
   it("returns null when services list is empty", () => {

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { ArrowRight, Calendar, BookOpen } from "lucide-react";
 import { listPublicBlogs, getSettings } from "@/lib/data/public";
 import { buildMetadata } from "@/lib/seo/metadata";
+import { breadcrumbJsonLd, jsonLdString } from "@/lib/seo/jsonld";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import CloudImage from "@/components/ui/CloudImage";
 import ContactButtons from "@/components/ui/ContactButtons";
@@ -10,22 +11,30 @@ import ContactButtons from "@/components/ui/ContactButtons";
 export const revalidate = 3600;
 
 export const metadata: Metadata = buildMetadata({
-  title: "Blog & Industry Insights",
-  description: "Expert articles, technical insights, and company updates on industrial steel fabrication, metal works, and welding standards in UAE.",
+  title: "Metal Fabrication & Construction Equipment Guides | UAE Industry Insights",
+  description:
+    "Technical guides, buying advice, and industry insights on steel fabrication, construction equipment, wheelbarrows, and lifting safety in the United Arab Emirates.",
   path: "/blog",
 });
 
 export default async function BlogListingPage() {
   const [blogs, settings] = await Promise.all([listPublicBlogs(), getSettings()]);
+  const breadcrumbsLd = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Blog", path: "/blog" },
+  ]);
 
   return (
     <>
       <section className="border-b border-steel-200 bg-steel-50">
         <div className="container-page py-10">
           <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: "Blog" }]} />
-          <h1 className="mt-4 text-3xl sm:text-4xl font-bold text-steel-900">Articles & Insights</h1>
+          <h1 className="mt-4 text-3xl sm:text-4xl font-extrabold text-steel-900">
+            UAE Steel Fabrication & Construction Equipment Insights
+          </h1>
           <p className="mt-2 max-w-2xl text-steel-600">
-            Expert fabrication knowledge, metalworking guides, and project updates from Bait Al Majed Metal Works.
+            Expert fabrication knowledge, metalworking guides, and project updates from Bait Al Majed Metal Works in
+            Ajman, UAE.
           </p>
         </div>
       </section>
@@ -121,6 +130,7 @@ export default async function BlogListingPage() {
           </div>
         </div>
       </div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumbsLd) }} />
     </>
   );
 }

@@ -8,6 +8,7 @@ import {
   Clock,
   Factory,
   FileCheck2,
+  HelpCircle,
   MapPin,
   Phone,
   ShieldCheck,
@@ -16,7 +17,8 @@ import { getServiceBySlug, getServices, getSettings } from "@/lib/data/public";
 import { cloudinaryUrl } from "@/lib/cloudinary/urls";
 import { telHref, whatsappHref } from "@/lib/config/site";
 import { buildMetadata } from "@/lib/seo/metadata";
-import { breadcrumbJsonLd, jsonLdString } from "@/lib/seo/jsonld";
+import { breadcrumbJsonLd, jsonLdString, serviceJsonLd } from "@/lib/seo/jsonld";
+import { SERVICE_SEO_DATA } from "@/lib/seo/service-seo";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import CloudImage from "@/components/ui/CloudImage";
 import ServiceIcon from "@/components/ui/ServiceIcon";
@@ -31,9 +33,18 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { slug } = await params;
   const s = await getServiceBySlug(slug);
   if (!s) return { title: "Service not found", robots: { index: false } };
+
+  const seoData = SERVICE_SEO_DATA[s.slug];
+  const title = s.seo_title || (seoData ? seoData.title : `${s.title} | Steel Fabrication UAE`);
+  const description =
+    s.seo_description ||
+    (seoData
+      ? seoData.metaDescription
+      : s.short_description || `${s.title} from Bait Al Majed Metal Works, Ajman, UAE.`);
+
   return buildMetadata({
-    title: s.seo_title || s.title,
-    description: s.seo_description || s.short_description || `${s.title} from Bait Al Majed Metal Works, Ajman, UAE.`,
+    title,
+    description,
     path: `/services/${s.slug}`,
     image: s.image_public_id ? cloudinaryUrl(s.image_public_id, 1200, "card") || null : null,
   });
@@ -43,8 +54,36 @@ export default async function ServicePage({ params }: { params: Params }) {
   const { slug } = await params;
   const service = await getServiceBySlug(slug);
   if (!service) notFound();
+
+  const seoData = SERVICE_SEO_DATA[service.slug];
   const [settings, all] = await Promise.all([getSettings(), getServices()]);
   const related = all.filter((s) => s.id !== service.id).slice(0, 3);
+
+  const displayH1 = seoData?.h1 || service.title;
+  const displayShort =
+    service.short_description ||
+    seoData?.shortDescription ||
+    `${service.title} provided by Bait Al Majed Metal Works in Ajman, UAE.`;
+  const displayOverview =
+    service.description && !service.description.startsWith("Sample description")
+      ? service.description
+      : (seoData?.overview ?? service.description);
+
+  const faqs = seoData?.faqs ?? [];
+
+  const ld: unknown[] = [
+    serviceJsonLd({
+      title: displayH1,
+      description: displayShort,
+      slug: service.slug,
+      image: service.image_public_id ? cloudinaryUrl(service.image_public_id, 1200, "card") || null : null,
+    }),
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Services", path: "/services" },
+      { name: service.title, path: `/services/${service.slug}` },
+    ]),
+  ];
 
   const whatsappLink = whatsappHref(
     settings.whatsapp_number,
@@ -75,21 +114,21 @@ export default async function ServicePage({ params }: { params: Params }) {
                     Fabrication Capability
                   </span>
                   <h1 className="mt-1 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-steel-900 tracking-tight">
-                    {service.title}
+                    {displayH1}
                   </h1>
                 </div>
               </div>
 
-              {service.short_description ? (
+              {displayShort ? (
                 <p className="mt-4 text-base sm:text-lg text-steel-600 leading-relaxed">
-                  {service.short_description}
+                  {displayShort}
                 </p>
               ) : null}
 
               {/* Quick Feature Badges */}
               <div className="mt-5 flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-steel-600">
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-white border border-steel-200 px-2.5 py-1 font-medium shadow-2xs">
-                  <ShieldCheck className="h-4 w-4 text-brand" /> Certified Steel Quality
+                  <ShieldCheck className="h-4 w-4 text-brand" /> Quality Steel Fabrication
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-white border border-steel-200 px-2.5 py-1 font-medium shadow-2xs">
                   <Factory className="h-4 w-4 text-brand" /> Ajman In-House Production
@@ -140,15 +179,49 @@ export default async function ServicePage({ params }: { params: Params }) {
             ) : null}
 
             {/* Service Description Card */}
-            {service.description ? (
+            {displayOverview ? (
               <section className="rounded-2xl border border-steel-200 bg-white p-6 sm:p-8 shadow-xs">
                 <h2 className="text-xl sm:text-2xl font-bold text-steel-900 flex items-center gap-2">
                   <FileCheck2 className="h-5 w-5 text-brand" />
                   Service Overview & Capabilities
                 </h2>
                 <div className="mt-4 whitespace-pre-line leading-relaxed text-steel-700 space-y-3">
-                  {service.description}
+                  <p>{displayOverview}</p>
                 </div>
+
+                {seoData?.capabilities && seoData.capabilities.length > 0 ? (
+                  <div className="mt-6 border-t border-steel-100 pt-6">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-steel-900 mb-3">
+                      Core Fabrication Capabilities
+                    </h3>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {seoData.capabilities.map((c, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-steel-700">
+                          <CheckCircle2 className="h-4 w-4 text-brand shrink-0 mt-0.5" />
+                          <span>{c}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                {seoData?.relatedProductCategorySlug ? (
+                  <div className="mt-6 rounded-lg border border-brand/20 bg-brand-50/40 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-brand">
+                      Related Products & Equipment
+                    </p>
+                    <p className="text-sm text-steel-700 mt-1">
+                      Explore our manufactured equipment in this category:{" "}
+                      <Link
+                        href={`/products?category=${seoData.relatedProductCategorySlug}`}
+                        className="font-bold text-brand hover:underline inline-flex items-center gap-1"
+                      >
+                        View {seoData.relatedProductCategoryName}
+                        <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                      </Link>
+                    </p>
+                  </div>
+                ) : null}
               </section>
             ) : null}
 
@@ -270,6 +343,24 @@ export default async function ServicePage({ params }: { params: Params }) {
           </div>
         </div>
 
+        {/* FAQs Section */}
+        {faqs.length > 0 ? (
+          <section className="mt-12" aria-labelledby="service-faqs">
+            <h2 id="service-faqs" className="text-2xl font-bold text-steel-900 mb-6 flex items-center gap-2">
+              <HelpCircle className="h-6 w-6 text-brand" aria-hidden="true" />
+              Frequently Asked Questions: {service.title}
+            </h2>
+            <div className="space-y-4">
+              {faqs.map((faq, idx) => (
+                <div key={idx} className="rounded-lg border border-steel-200 bg-white p-5 shadow-2xs">
+                  <h3 className="text-base font-bold text-steel-900">{faq.question}</h3>
+                  <p className="mt-2 text-sm text-steel-700 leading-relaxed">{faq.answer}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         {/* Structured Inquiry Section with 2-Column Split */}
         <section
           id="enquire"
@@ -376,13 +467,7 @@ export default async function ServicePage({ params }: { params: Params }) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: jsonLdString(
-            breadcrumbJsonLd([
-              { name: "Home", path: "/" },
-              { name: "Services", path: "/services" },
-              { name: service.title, path: `/services/${service.slug}` },
-            ])
-          ),
+          __html: jsonLdString(ld),
         }}
       />
     </>

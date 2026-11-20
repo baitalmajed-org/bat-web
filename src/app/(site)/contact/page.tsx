@@ -3,6 +3,7 @@ import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { getSettings } from "@/lib/data/public";
 import { telHref, whatsappHref } from "@/lib/config/site";
 import { buildMetadata } from "@/lib/seo/metadata";
+import { breadcrumbJsonLd, jsonLdString } from "@/lib/seo/jsonld";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import InquiryForm from "@/components/inquiry/InquiryForm";
@@ -10,8 +11,9 @@ import InquiryForm from "@/components/inquiry/InquiryForm";
 export const revalidate = 3600;
 
 export const metadata: Metadata = buildMetadata({
-  title: "Contact Us",
-  description: "Contact Bait Al Majed Metal Works in Ajman, UAE by phone, WhatsApp, email or the inquiry form.",
+  title: "Contact Bait Al Majed Metal Works | Steel Fabrication Ajman UAE",
+  description:
+    "Contact Bait Al Majed Metal Works in Al Jurf Industrial Area, Ajman, UAE. Reach our workshop via phone, WhatsApp, email, or send an enquiry for factory-direct quotations on wheelbarrows, trolleys, lifting cages, and custom steel products.",
   path: "/contact",
 });
 
@@ -21,13 +23,24 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
   const [settings, { type }] = await Promise.all([getSettings(), searchParams]);
   const defaultType = (VALID_TYPES as readonly string[]).includes(type ?? "") ? (type as (typeof VALID_TYPES)[number]) : "general";
 
+  const breadcrumbsLd = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Contact", path: "/contact" },
+  ]);
+
   return (
     <>
       <section className="border-b border-steel-200 bg-steel-50">
         <div className="container-page py-10">
           <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: "Contact" }]} />
-          <h1 className="mt-4 text-3xl sm:text-4xl">Contact Us</h1>
-          <p className="mt-2 max-w-2xl text-steel-600">Send us an inquiry or reach us directly. Product enquiries, custom fabrication requirements and bulk orders are welcome.</p>
+          <h1 className="mt-4 text-3xl sm:text-4xl font-extrabold text-steel-900">
+            Contact Bait Al Majed Metal Works | Ajman, UAE
+          </h1>
+          <p className="mt-2 max-w-2xl text-steel-600">
+            Get in touch with our steel fabrication workshop in Al Jurf Industrial Area 2, Ajman. We provide prompt
+            quotations for welded wheelbarrows, gas trolleys, lifting cages, concrete buckets, and custom metal projects
+            across the UAE.
+          </p>
         </div>
       </section>
 
@@ -46,10 +59,11 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
         </aside>
 
         <section className="lg:col-span-3" aria-labelledby="form-heading">
-          <h2 id="form-heading" className="mb-5 text-2xl">Send an inquiry</h2>
+          <h2 id="form-heading" className="mb-5 text-2xl font-bold text-steel-900">Send an inquiry</h2>
           <InquiryForm defaultType={defaultType} heading="Contact inquiry" />
         </section>
       </div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumbsLd) }} />
     </>
   );
 }

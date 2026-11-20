@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
 import { getPublicBlogBySlug, getSettings } from "@/lib/data/public";
 import { buildMetadata } from "@/lib/seo/metadata";
+import { articleJsonLd, breadcrumbJsonLd, jsonLdString } from "@/lib/seo/jsonld";
 import { cloudinaryUrl } from "@/lib/cloudinary/urls";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import CloudImage from "@/components/ui/CloudImage";
@@ -174,6 +175,28 @@ export default async function BlogPostPage({ params }: Props) {
           />
         </div>
       </article>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdString([
+            articleJsonLd({
+              title: blog.title,
+              excerpt: blog.excerpt,
+              slug: blog.slug,
+              content: blog.content,
+              image: blog.image_public_id ? cloudinaryUrl(blog.image_public_id, 1200, "card") || null : null,
+              published_at: blog.published_at,
+              created_at: blog.created_at,
+              updated_at: blog.updated_at,
+            }),
+            breadcrumbJsonLd([
+              { name: "Home", path: "/" },
+              { name: "Blog", path: "/blog" },
+              { name: blog.title, path: `/blog/${blog.slug}` },
+            ]),
+          ]),
+        }}
+      />
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { getCategories, getServices, getSettings } from "@/lib/data/public";
-import { jsonLdString, organizationJsonLd } from "@/lib/seo/jsonld";
+import { jsonLdString, organizationJsonLd, websiteJsonLd } from "@/lib/seo/jsonld";
 import TopContactBar from "@/components/layout/TopContactBar";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
@@ -13,7 +13,12 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <Header settings={settings} />
       <main id="main">{children}</main>
       <Footer settings={settings} categories={categories} services={services} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(organizationJsonLd(settings)) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdString([organizationJsonLd(settings), websiteJsonLd()]),
+        }}
+      />
     </>
   );
 }

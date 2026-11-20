@@ -12,6 +12,25 @@ const nextConfig = {
     remotePatterns: [{ protocol: "https", hostname: "res.cloudinary.com" }],
     formats: ["image/avif", "image/webp"],
   },
+  async redirects() {
+    return [
+      {
+        source: "/products/steel-wheelbarrow",
+        destination: "/products/welded-wheelbarrow",
+        permanent: true,
+      },
+      {
+        source: "/products/lifting-cage",
+        destination: "/products/material-lifting-cage",
+        permanent: true,
+      },
+      {
+        source: "/products/steel-waste-bin",
+        destination: "/products/industrial-waste-skip-bins",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

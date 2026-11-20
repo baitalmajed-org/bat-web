@@ -24,7 +24,17 @@ export default function Hero({ section, settings }: { section: HomepageSection; 
 
   const desktopId = section.image_public_id;
   const mobileId = section.mobile_image_public_id;
-  const defaultAlt = section.heading || "Bait Al Majed Metal Works industrial steel fabrication";
+  const displayHeading =
+    !section.heading || section.heading === "Reliable Steel Solutions for Construction & Industrial Applications"
+      ? "Steel Fabrication & Metal Works Manufacturer in Ajman, UAE"
+      : section.heading;
+
+  const displayBody =
+    !section.body || section.body === "Welding, fabrication and customized metal solutions from Ajman, UAE."
+      ? "Bait Al Majed Metal Works manufactures welded wheelbarrows, gas cylinder trolleys, lifting cages, concrete buckets, and custom steel products for construction and industrial contractors across the UAE."
+      : section.body;
+
+  const defaultAlt = displayHeading || "Bait Al Majed Metal Works industrial steel fabrication in Ajman UAE";
   const desktopAlt = section.image_alt || defaultAlt;
   const mobileAlt = section.mobile_image_alt || section.image_alt || defaultAlt;
 
@@ -89,8 +99,8 @@ export default function Hero({ section, settings }: { section: HomepageSection; 
       <div className="container-page relative pt-6 pb-8 sm:py-10 lg:py-10">
         <div className="max-w-2xl motion-safe:animate-[fadeUp_0.6s_ease-out]">
           {section.eyebrow ? <p className="mb-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-steel-300">{section.eyebrow}</p> : null}
-          <h1 className="text-3xl !text-white sm:text-4xl lg:text-5xl xl:text-[3.25rem] leading-[1.12]">{section.heading}</h1>
-          {section.body ? <p className="mt-3.5 max-w-xl text-base text-steel-200 sm:text-lg leading-relaxed">{section.body}</p> : null}
+          <h1 className="text-3xl !text-white sm:text-4xl lg:text-5xl xl:text-[3.25rem] leading-[1.12]">{displayHeading}</h1>
+          {displayBody ? <p className="mt-3.5 max-w-xl text-base text-steel-200 sm:text-lg leading-relaxed">{displayBody}</p> : null}
           <div className="mt-6 flex flex-wrap gap-3">
             <CtaLink href={section.primary_cta_href} label={section.primary_cta_label} settings={settings} variant="primary" />
             <CtaLink href={section.secondary_cta_href} label={section.secondary_cta_label} settings={settings} variant="secondary" />

@@ -1,3 +1,5 @@
+export const PRODUCTION_DOMAIN = "https://www.bammetaluae.com";
+
 /**
  * Central, single source of truth for company contact details.
  * Runtime values are read from the `site_settings` table (editable in the admin Settings page);
@@ -6,12 +8,25 @@
 export const COMPANY = {
   name: "Bait Al Majed Metal Works",
   shortName: "BAM",
+  brandName: "BAM Metal UAE",
+  legalName: "Bait Al Majed Metal Works S.P.S. LLC",
   tagline: "We do all kind of welding and fabrication works",
   mainPhone: "+971 54 716 7455",
   whatsappNumber: "+971 54 716 7455",
   secondaryPhone: "00971 55 754 5936",
   email: "info@bammetaluae.com",
-  location: "Ajman, United Arab Emirates",
+  location: "Al Jurf Industrial Area 2, Ajman, United Arab Emirates",
+  address: {
+    streetAddress: "Al Jurf Industrial 2, Al Bahya Street",
+    addressLocality: "Ajman",
+    addressRegion: "Ajman",
+    postalCode: "00000",
+    addressCountry: "AE",
+  },
+  geo: {
+    latitude: 25.4385,
+    longitude: 55.5186,
+  },
 } as const;
 
 /** Convert any phone format to international digits-only form (e.g. 971547167455). */
@@ -33,7 +48,15 @@ export function whatsappHref(phone: string, message?: string): string {
 }
 
 export function siteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (process.env.NODE_ENV === "production") {
+    // In production build or deployment, always use verified production domain unless an explicit external domain is supplied
+    if (!envUrl || envUrl.includes("localhost") || envUrl.includes("127.0.0.1")) {
+      return PRODUCTION_DOMAIN;
+    }
+    return envUrl.replace(/\/$/, "");
+  }
+  return (envUrl || PRODUCTION_DOMAIN).replace(/\/$/, "");
 }
 
 export const NAV_LINKS = [

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CheckCircle2, Compass, Target } from "lucide-react";
 import { DEFAULT_ABOUT, getAboutPage, getFeaturedProducts, getHomepageSections, getProducts, getSettings } from "@/lib/data/public";
 import { buildMetadata } from "@/lib/seo/metadata";
+import { breadcrumbJsonLd, jsonLdString } from "@/lib/seo/jsonld";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import CloudImage from "@/components/ui/CloudImage";
 import Placeholder from "@/components/ui/Placeholder";
@@ -14,9 +15,17 @@ export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getAboutPage();
+  const title =
+    page?.title && page.title !== "About Us"
+      ? page.title
+      : "About Bait Al Majed Metal Works | Steel Fabrication Facility Ajman UAE";
+  const description =
+    page?.meta_description ||
+    "Learn about Bait Al Majed Metal Works, a leading steel fabrication and industrial equipment manufacturer located in Al Jurf Industrial Area, Ajman, United Arab Emirates.";
+
   return buildMetadata({
-    title: page?.title ?? "About Us",
-    description: page?.meta_description || "About Bait Al Majed Metal Works, a steel fabrication and metal works company in Ajman, UAE.",
+    title,
+    description,
     path: "/about",
   });
 }
@@ -221,6 +230,17 @@ export default async function AboutPage() {
       ) : null}
 
       <ContactCta section={ctaSection} settings={settings} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdString(
+            breadcrumbJsonLd([
+              { name: "Home", path: "/" },
+              { name: "About", path: "/about" },
+            ])
+          ),
+        }}
+      />
     </>
   );
 }

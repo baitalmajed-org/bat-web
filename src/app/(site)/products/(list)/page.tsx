@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Search } from "lucide-react";
 import { PAGE_SIZE, getCategories, getProducts } from "@/lib/data/public";
 import { buildMetadata } from "@/lib/seo/metadata";
+import { breadcrumbJsonLd, jsonLdString } from "@/lib/seo/jsonld";
 import ProductCard from "@/components/products/ProductCard";
 import Pagination from "@/components/ui/Pagination";
 import CategoryFilterBar from "@/components/products/CategoryFilterBar";
@@ -10,13 +11,60 @@ import Breadcrumbs from "@/components/ui/Breadcrumbs";
 
 type SP = Promise<{ category?: string; q?: string; page?: string }>;
 
+const CATEGORY_SEO_MAP: Record<string, { title: string; desc: string; h1: string }> = {
+  wheelbarrows: {
+    title: "Welded Wheelbarrow Manufacturer UAE | Heavy-Duty Construction Wheelbarrows",
+    desc: "Heavy-duty welded steel wheelbarrows manufactured by Bait Al Majed Metal Works in Ajman, UAE. Built for construction sites, masonry contractors, and bulk supply across Dubai, Sharjah and UAE.",
+    h1: "Heavy-Duty Welded Wheelbarrow Manufacturer in UAE",
+  },
+  "gas-trolleys": {
+    title: "Gas Cylinder Trolley Manufacturer UAE | Heavy-Duty Oxygen & LPG Trolleys",
+    desc: "Single and double gas cylinder trolleys fabricated in Ajman, UAE for industrial welding, oxygen, and LPG bottle transport across UAE job sites.",
+    h1: "Industrial Gas Cylinder Trolleys Manufacturer UAE",
+  },
+  "lifting-cages": {
+    title: "Construction Lifting Cage Manufacturer UAE | Crane Hoisting Cages",
+    desc: "Heavy-duty steel material lifting cages and crane hoisting baskets manufactured in Ajman, UAE for block, brick, and site material handling.",
+    h1: "Construction Material Lifting Cage Manufacturer UAE",
+  },
+  "concrete-buckets": {
+    title: "Steel Concrete Bucket Manufacturer UAE | Crane Pouring Skips",
+    desc: "Crane concrete pouring buckets and discharge skips fabricated in Ajman, UAE for controlled concrete placement on commercial construction sites.",
+    h1: "Steel Concrete Bucket Manufacturer UAE",
+  },
+  "pallet-trolleys": {
+    title: "Pallet & Platform Trolleys Manufacturer UAE | Material Handling Ajman",
+    desc: "Heavy-duty steel platform and pallet trolleys for warehouses, workshops, and construction material handling across the United Arab Emirates.",
+    h1: "Industrial Platform & Pallet Trolley Manufacturer UAE",
+  },
+  "waste-bins": {
+    title: "Steel Waste Bins & Scrap Containers Manufacturer UAE | Ajman",
+    desc: "Heavy-duty industrial steel waste bins and construction site scrap containers fabricated to standard and custom sizes in Ajman, UAE.",
+    h1: "Heavy-Duty Steel Waste Bins Manufacturer UAE",
+  },
+  "custom-fabrication": {
+    title: "Custom Steel Products Manufacturer UAE | Industrial Metal Fabrication",
+    desc: "Custom steel fabrication and made-to-order industrial steel products manufactured to client drawings in Ajman, UAE with prompt delivery.",
+    h1: "Custom Steel Products & Metal Fabrication UAE",
+  },
+};
+
 export async function generateMetadata({ searchParams }: { searchParams: SP }): Promise<Metadata> {
   const { category, q, page } = await searchParams;
   const filtered = Boolean(category || q || (page && page !== "1"));
+
+  const matchedCat = category ? CATEGORY_SEO_MAP[category] : null;
+  const title = matchedCat
+    ? matchedCat.title
+    : "Construction Equipment & Steel Products Manufacturer UAE | Bait Al Majed";
+  const description = matchedCat
+    ? matchedCat.desc
+    : "Explore industrial construction equipment manufactured by Bait Al Majed Metal Works in Ajman, UAE: welded wheelbarrows, gas cylinder trolleys, crane lifting cages, concrete buckets, and custom steel products.";
+
   return {
     ...buildMetadata({
-      title: "Industrial Steel Products",
-      description: "Wheelbarrows, gas trolleys, pallet trolleys, lifting cages, concrete buckets, waste bins and custom steel fabrication from Ajman, UAE.",
+      title,
+      description,
       path: "/products",
     }),
     robots: filtered ? { index: false, follow: true } : undefined,
@@ -37,13 +85,33 @@ export default async function ProductsPage({ searchParams }: { searchParams: SP 
     return qs ? `/products?${qs}` : "/products";
   };
 
+  const matchedCat = category ? CATEGORY_SEO_MAP[category] : null;
+  const displayH1 = matchedCat
+    ? matchedCat.h1
+    : "Industrial Steel & Construction Equipment Manufacturer UAE";
+  const displayIntro = matchedCat
+    ? matchedCat.desc
+    : "Heavy-duty welded wheelbarrows, gas cylinder trolleys, crane material lifting cages, concrete buckets, and custom steel products manufactured in Ajman for contractors across Dubai, Sharjah, Abu Dhabi, and the UAE.";
+
+  const breadcrumbs = [
+    { name: "Home", href: "/" },
+    { name: "Products", href: "/products" },
+    ...(category && matchedCat ? [{ name: matchedCat.h1 }] : []),
+  ];
+
+  const breadcrumbsLd = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Products", path: "/products" },
+    ...(category && matchedCat ? [{ name: matchedCat.h1, path: `/products?category=${category}` }] : []),
+  ]);
+
   return (
     <>
       <section className="border-b border-steel-200 bg-steel-50">
         <div className="container-page py-10">
-          <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: "Products" }]} />
-          <h1 className="mt-4 text-3xl sm:text-4xl">Industrial Steel Products</h1>
-          <p className="mt-2 max-w-2xl text-steel-600">Browse our steel products. Need something specific? Send an inquiry and we will get back to you.</p>
+          <Breadcrumbs items={breadcrumbs} />
+          <h1 className="mt-4 text-3xl sm:text-4xl">{displayH1}</h1>
+          <p className="mt-2 max-w-3xl text-steel-600">{displayIntro}</p>
         </div>
       </section>
 
@@ -92,6 +160,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: SP 
           )}
         </div>
       </div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumbsLd) }} />
     </>
   );
 }

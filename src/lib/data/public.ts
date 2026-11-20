@@ -31,8 +31,9 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   announcement_link_new_tab: false,
   top_bar_enabled: true,
   top_contact_bar_enabled: true,
-  seo_default_title: `${COMPANY.name} | Steel Fabrication in Ajman, UAE`,
-  seo_default_description: "Industrial steel fabrication and metal works in Ajman, UAE.",
+  seo_default_title: `${COMPANY.name} | Steel Fabrication & Industrial Equipment UAE`,
+  seo_default_description:
+    "Bait Al Majed Metal Works is a steel fabrication and metal works company in Ajman, UAE. Explore welded wheelbarrows, gas cylinder trolleys, lifting cages, concrete buckets and custom steel products. Contact us for quotations.",
   footer_description: null,
   response_time_commitment: null,
 };
